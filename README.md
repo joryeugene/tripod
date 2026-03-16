@@ -318,12 +318,13 @@ Why gstack:
 - **Cookie import**: `cookie-import-browser` pulls sessions from Chrome/Arc/Brave/Edge via macOS Keychain.
 - **30-min idle shutdown**: no zombie processes.
 
+The browse source is bundled with claude-stack. Build it once:
+
 ```bash
-git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
-cd ~/.claude/skills/gstack && ./setup
+cd <claude-stack-repo>/browse && ./setup
 ```
 
-Requires [bun](https://bun.sh) v1.0+.
+Requires [bun](https://bun.sh) v1.0+. Based on [gstack](https://github.com/garrytan/gstack) by Garry Tan (MIT).
 
 ---
 

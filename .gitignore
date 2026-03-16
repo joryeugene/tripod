@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 .DS_Store
 .mcp.json
+browse/dist/
+browse/node_modules/
+browse/bun.lock
