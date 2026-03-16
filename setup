@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -e
+
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+HOOKS_DIR="$HOME/.claude/hooks"
+SKILLS_DIR="$HOME/.claude/skills"
+
+mkdir -p "$HOOKS_DIR" "$SKILLS_DIR"
+
+# Install hooks
+hooks_installed=()
+for hook in "$REPO_DIR"/hooks/*.py; do
+  name="$(basename "$hook")"
+  cp "$hook" "$HOOKS_DIR/$name"
+  chmod +x "$HOOKS_DIR/$name"
+  hooks_installed+=("$name")
+done
+
+# Symlink skills
+skills_linked=()
+for skill_dir in "$REPO_DIR"/skills/*/; do
+  name="$(basename "$skill_dir")"
+  target="$SKILLS_DIR/$name"
+  ln -snf "$skill_dir" "$target"
+  skills_linked+=("$name")
+done
+
+echo "claude-stack installed."
+echo ""
+echo "  hooks -> ~/.claude/hooks/"
+for h in "${hooks_installed[@]}"; do echo "    $h"; done
+echo ""
+echo "  skills -> ~/.claude/skills/"
+for s in "${skills_linked[@]}"; do echo "    /$s"; done
+echo ""
+echo "Next: add hooks to ~/.claude/settings.json"
+echo "      See settings.json.example for the full config."
+echo ""
+echo "  env    -> source ~/.claude/skills/claude-stack/env.sh.example"
+echo "            (or copy vars into settings.json under the \"env\" key)"
