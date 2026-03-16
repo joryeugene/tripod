@@ -41,6 +41,18 @@ Once fixed, run `/verification-workflow` to prove the fix holds under the full c
 3. Logic error (5%)
 4. Complex state issue (5%)
 
+## Rationalization Red Flags
+
+These thoughts mean you are about to skip the protocol. Recognize them and stop.
+
+| Thought | Reality |
+|---------|---------|
+| "One more fix attempt, I'm close." | You said that last time. Get actual data first. |
+| "I think I know the issue." | Thinking is not knowing. Curl the endpoint. Read the log. |
+| "Let me try this quick thing." | Quick things compound. Follow the steps in order. |
+| "The schema is fine, I already checked." | Check again. Character by character. The mismatch you missed is the bug. |
+| "This must be a race condition." | Race conditions are 5% of bugs. Schema mismatch is 80%. Check schema first. |
+
 ## Anti-Patterns
 
 - Launching "investigation plans" before checking schema. The data is almost always the problem.

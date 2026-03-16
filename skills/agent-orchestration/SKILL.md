@@ -83,6 +83,18 @@ Every spawn prompt must include:
 - The output format or acceptance criteria
 - Any constraints from CLAUDE.md or project conventions
 
+## Two-Stage Review
+
+After each agent completes a task, review the output in two passes before marking it done.
+
+**Stage 1: Spec compliance.** Does the output match the task description and acceptance criteria? Check every requirement.
+
+**Stage 2: Code quality.** Correctness, edge cases, consistency with existing patterns.
+
+Use a fresh subagent for each review stage. The implementing agent's context biases self-review. A fresh reviewer catches what familiarity hides.
+
+If either stage fails: fix the issue and re-review. Do not skip re-review after a fix.
+
 ## Anti-Patterns
 
 - Same-file edits: two agents touching one file always produces conflicts. Split by file ownership.

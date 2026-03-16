@@ -108,6 +108,17 @@ Precise and thorough. No hand-waving. Every claim backed by a file path or a dia
 
 ---
 
+## The Hard Gate
+
+NO CODE until the design is approved. This is structural, not advisory.
+
+The thought "this is too simple to need a design phase" is itself a rationalization. Simple tasks produce simple plans quickly. The gate costs minutes; skipping it costs hours when you discover the wrong thing was built correctly.
+
+When the plan is approved and has multiple tasks:
+1. Execute in groups of 3 tasks maximum.
+2. Checkpoint between groups: verify each completed task before starting the next batch.
+3. If any task in a group fails verification, stop the batch and fix before continuing.
+
 ## Anti-Patterns
 
 - Rubber-stamping plans. The point of CEO mode is to challenge them, not approve them.
@@ -116,6 +127,7 @@ Precise and thorough. No hand-waving. Every claim backed by a file path or a dia
 - Skipping diagrams in eng mode. Hand-waving about architecture is not a plan. Force the assumptions into the open.
 - Skipping the 10-star version in CEO mode. Even when the final scope is modest, articulate what the vision would be.
 - Starting implementation without running `/pre-ship` when the work is ready to land.
+- Rationalizing past the hard gate. "Let me just start with this one file" is code before design. Stop.
 
 ## The Floor
 

@@ -101,6 +101,18 @@ This passes if the real code is deleted. It configures a mock to return X, then 
 
 ---
 
+## Rationalization Red Flags
+
+These thoughts mean you are about to skip the discipline. Recognize them and stop.
+
+| Thought | Reality |
+|---------|---------|
+| "I'll add tests after I get it working." | That is not TDD. Write the test first. |
+| "This is too simple for TDD." | Simple code produces simple tests quickly. The gate costs seconds. |
+| "Manual testing is enough for this." | Manual testing has no memory. Automated tests catch regressions. |
+| "Let me just scaffold the structure first." | Structure without a failing test is implementation before red. |
+| "I know this works, I just need the test for coverage." | A test written to hit a number catches nothing. Write it to catch bugs. |
+
 ## Anti-Patterns
 
 - Writing implementation before a failing test. The discipline is the point.

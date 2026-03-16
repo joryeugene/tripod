@@ -127,6 +127,13 @@ The claude-stack skills form a lifecycle. Each skill fires at a specific moment.
 | After UI changes | `/visual-verify` | Element-level proof, not full-page screenshots |
 | Testing behavior in browser | `/browser-testing` | Network, console, forms, multi-tab |
 
+### Review
+
+| Moment | Skill | Trigger |
+|--------|-------|---------|
+| Receiving PR feedback | `/code-review` | Read all, restate, YAGNI check, push back with evidence |
+| Before merge | `/code-review` | Dispatch reviewer subagent, two-stage review |
+
 ### Shipping
 
 | Moment | Skill | Trigger |

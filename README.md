@@ -156,6 +156,10 @@ source ~/.local/bin/mcp-use
        +--- /visual-verify ---------- element-level proof after UI changes
        +--- /browser-testing -------- network, console, forms, multi-tab
        |
+       |   (review)
+       +--- /code-review ------------ receiving feedback? restate, YAGNI check
+       |                              requesting review? dispatch subagent
+       |
        v
    /ship-pipeline ------ pre-flight review, merge, test, commit, push, PR
 
@@ -164,6 +168,10 @@ source ~/.local/bin/mcp-use
 
    /agent-principles      the quality contract: evidence, schema-first, no hedging
    /agent-orchestration   parallel agents for independent work streams
+
+  maintenance
+
+   /sync                  install, update, or sync claude-stack
 ```
 
 ---
@@ -199,10 +207,12 @@ Each skill owns one moment in the workflow. Invoke with `/skill-name` in Claude 
 | `/performance` | Code is slow. Queries taking too long. Suspect N+1, O(n squared), or missing indexes. |
 | `/security-review` | Feature touches user input, auth, file paths, or database queries. |
 | `/code-hygiene` | AI-session debt accumulating: dead exports, duplicate logic, orphaned types. |
+| `/code-review` | Receiving PR feedback or requesting review before merge. Restate, YAGNI check, two-stage review. |
 | `/impeccable-design` | Starting UI work. Visual identity before writing a line of code. |
 | `/visual-verify` | After UI changes. Element-level proof before declaring done. |
 | `/browser-testing` | Deep browser testing with ABP. Network, console, forms, multi-tab, authenticated API calls. |
 | `/ship-pipeline` | Ready to ship. Pre-flight review, merge, test, commit, push, PR. |
+| `/sync` | Install, update, or sync claude-stack. Dev path runs `./sync`; user path runs `claude plugin install`. |
 
 ---
 
