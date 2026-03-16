@@ -1,0 +1,17 @@
+#!/bin/bash
+# Shim: delegates to compiled find-browse binary, falls back to basic discovery.
+# The compiled binary handles git root detection for workspace-local installs.
+DIR="$(cd "$(dirname "$0")/.." && pwd)/dist"
+if test -x "$DIR/find-browse"; then
+  exec "$DIR/find-browse" "$@"
+fi
+# Fallback: basic discovery (tripod paths, then gstack paths)
+CACHE="$HOME/.claude/plugins/cache/tripod/tripod/1.0.0/browse/dist/browse"
+if test -x "$CACHE"; then
+  echo "$CACHE"
+elif test -x "$DIR/browse"; then
+  echo "$DIR/browse"
+else
+  echo "ERROR: browse binary not found. Run: cd <tripod>/browse && ./setup" >&2
+  exit 1
+fi

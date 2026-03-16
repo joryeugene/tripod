@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -e
+
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+PRESET_DIR="$HOME/.config/mcp-presets"
+SCRIPTS_DIR="$HOME/.local/bin"
+
+mkdir -p "$PRESET_DIR" "$SCRIPTS_DIR"
+
+# Install statusline
+cp "$REPO_DIR/statusline.sh" "$HOME/.claude/statusline.sh"
+chmod +x "$HOME/.claude/statusline.sh"
+
+# Install mcp-presets (only copy if file doesn't already exist -- don't overwrite customizations)
+presets_installed=()
+for preset in "$REPO_DIR"/mcp-presets/*.json; do
+  name="$(basename "$preset")"
+  target="$PRESET_DIR/$name"
+  if [[ ! -f "$target" ]]; then
+    cp "$preset" "$target"
+    presets_installed+=("$name")
+  fi
+done
+
+# Install mcp-use script
+cp "$REPO_DIR/scripts/mcp-use.sh" "$SCRIPTS_DIR/mcp-use"
+chmod +x "$SCRIPTS_DIR/mcp-use"
+
+echo "tripod setup complete."
+echo ""
+echo "  statusline -> ~/.claude/statusline.sh"
+echo ""
+if [[ ${#presets_installed[@]} -gt 0 ]]; then
+  echo "  mcp-presets -> ~/.config/mcp-presets/"
+  for p in "${presets_installed[@]}"; do echo "    $p"; done
+  echo ""
+fi
+echo "  mcp-use -> ~/.local/bin/mcp-use"
+echo ""
+echo "Next steps:"
+echo "  1. Copy CLAUDE.md to ~/.claude/CLAUDE.md (global) or your project root"
+echo "  2. Register and install the plugin:"
+echo "       claude plugin marketplace add ."
+echo "       claude plugin install tripod"
+echo "       ./verify"
+echo "  3. Set env vars: copy into ~/.claude/settings.json under the \"env\" key"
+echo "     (see settings.json.example)"
+echo ""
+echo "  playwright -> mcp-use playwright  (browser automation)"
+echo "  chrome     -> mcp-use chrome      (devtools inspection)"
+echo "  browser    -> mcp-use browser     (playwright + chrome-devtools)"
+echo "  shad       -> mcp-use shad        (shadcn-ui components)"
+echo "  ui         -> mcp-use ui          (shadcn + chrome-devtools)"
+echo "  workspace  -> mcp-use workspace   (Google Docs/Drive/Calendar/Sheets)"
+echo "  best       -> mcp-use best        (gitmcp + hive foundation)"
+echo "  asana      -> mcp-use asana      (Asana task management, requires ASANA_ACCESS_TOKEN)"
+echo "  all        -> mcp-use all         (everything)"
+echo ""
+echo "  browse CLI -> cd browse && ./setup   (persistent Chromium daemon, requires bun)"

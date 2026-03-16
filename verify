@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -e
+
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+MARKETPLACE_FILE="$HOME/.claude/plugins/known_marketplaces.json"
+INSTALLED_FILE="$HOME/.claude/plugins/installed_plugins.json"
+PLUGIN_KEY="tripod@tripod"
+
+ok=true
+install_path=""
+
+# Check marketplace registration
+if [[ -f "$MARKETPLACE_FILE" ]] && python3 -c "
+import json, sys
+data = json.load(open('$MARKETPLACE_FILE'))
+sys.exit(0 if 'tripod' in data else 1)
+" 2>/dev/null; then
+  echo "  marketplace: registered"
+else
+  echo "  marketplace: NOT registered"
+  echo "    fix: claude plugin marketplace add joryeugene/tripod"
+  ok=false
+fi
+
+# Check plugin installation
+if [[ -f "$INSTALLED_FILE" ]] && python3 -c "
+import json, sys
+data = json.load(open('$INSTALLED_FILE'))
+sys.exit(0 if '$PLUGIN_KEY' in data.get('plugins', {}) else 1)
+" 2>/dev/null; then
+  install_path=$(python3 -c "
+import json
+data = json.load(open('$INSTALLED_FILE'))
+entries = data['plugins']['$PLUGIN_KEY']
+print(entries[0]['installPath'])
+")
+
+  skill_count=$(ls "$install_path/skills/" 2>/dev/null | wc -l | tr -d ' ')
+  hook_count=$(ls "$install_path/hooks/"*.py 2>/dev/null | wc -l | tr -d ' ')
+
+  echo "  plugin:      installed ($skill_count skills, $hook_count hooks)"
+  echo "  path:        $install_path"
+else
+  echo "  plugin:      NOT installed"
+  echo "    fix: claude plugin install tripod"
+  ok=false
+fi
+
+# Check version alignment (dev path only: requires git + plugin.json)
+if [[ -n "$install_path" && -f "$REPO_DIR/.claude-plugin/plugin.json" ]]; then
+  git_tag=$(git -C "$REPO_DIR" describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "")
+  plugin_json_ver=$(python3 -c "import json; print(json.load(open('$REPO_DIR/.claude-plugin/plugin.json'))['version'])" 2>/dev/null || echo "")
+  cached_ver=$(basename "$install_path")
+
+  if [[ -n "$git_tag" && "$git_tag" != "$plugin_json_ver" ]]; then
+    echo "  version:     DRIFT (git=$git_tag, plugin.json=$plugin_json_ver)"
+    echo "    fix: ./sync"
+    ok=false
+  elif [[ -n "$plugin_json_ver" && "$cached_ver" != "$plugin_json_ver" ]]; then
+    echo "  version:     DRIFT (cache=$cached_ver, plugin.json=$plugin_json_ver)"
+    echo "    fix: ./sync"
+    ok=false
+  elif [[ -n "$plugin_json_ver" ]]; then
+    echo "  version:     $plugin_json_ver"
+  fi
+fi
+
+echo ""
+if $ok; then
+  echo "tripod is ready. Start a new session to load skills and hooks."
+else
+  echo "tripod is not fully installed. Run the fix commands above."
+  exit 1
+fi

@@ -1,0 +1,9 @@
+{
+  "_description": "browser automation and E2E testing",
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  }
+}

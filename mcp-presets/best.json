@@ -1,0 +1,15 @@
+{
+  "_description": "gitmcp + hive (always-on foundation)",
+  "mcpServers": {
+    "gitmcp": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://gitmcp.io/docs"]
+    },
+    "hive": {
+      "type": "stdio",
+      "command": "keephive",
+      "args": ["mcp-serve"],
+      "env": {}
+    }
+  }
+}

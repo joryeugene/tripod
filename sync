@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+set -e
+
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+INSTALLED_FILE="$HOME/.claude/plugins/installed_plugins.json"
+PLUGIN_KEY="tripod@tripod"
+
+# ── Step 1: Auto-bump plugin version from latest git tag ──────────────────────
+
+plugin_version=$(python3 - "$REPO_DIR" <<'PYEOF'
+import json, re, subprocess, sys, os
+
+repo_dir = sys.argv[1]
+
+pj = os.path.join(repo_dir, '.claude-plugin', 'plugin.json')
+current = json.loads(open(pj).read())['version']
+
+result = subprocess.run(
+    ['git', '-C', repo_dir, 'describe', '--tags', '--abbrev=0'],
+    capture_output=True, text=True)
+git_tag = result.stdout.strip().lstrip('v')
+
+if not git_tag:
+    print(current)
+    sys.exit(0)
+
+if git_tag == current:
+    sys.exit(0)
+
+# Targeted regex replacement preserves all formatting
+for path in [pj, os.path.join(repo_dir, '.claude-plugin', 'marketplace.json')]:
+    text = open(path).read()
+    updated = re.sub(r'("version"\s*:\s*")[^"]+(")', rf'\g<1>{git_tag}\2', text, count=1)
+    open(path, 'w').write(updated)
+
+print(f'  version: {current} -> {git_tag}', file=sys.stderr)
+print(git_tag)
+PYEOF
+)
+
+# If python3 printed nothing to stdout, fall back to reading plugin.json directly
+if [[ -z "$plugin_version" ]]; then
+  plugin_version=$(python3 -c "import json; print(json.load(open('$REPO_DIR/.claude-plugin/plugin.json'))['version'])")
+fi
+
+# ── Check plugin is installed ─────────────────────────────────────────────────
+
+if [[ ! -f "$INSTALLED_FILE" ]]; then
+  echo "error: no installed plugins found"
+  echo "  run: claude plugin marketplace add joryeugene/tripod"
+  echo "       claude plugin install tripod"
+  exit 1
+fi
+
+install_path=$(python3 -c "
+import json, sys
+data = json.load(open('$INSTALLED_FILE'))
+entries = data.get('plugins', {}).get('$PLUGIN_KEY', [])
+if not entries:
+    sys.exit(1)
+print(entries[0]['installPath'])
+" 2>/dev/null)
+
+if [[ -z "$install_path" || ! -d "$install_path" ]]; then
+  echo "error: tripod plugin not installed"
+  echo "  run: claude plugin install tripod"
+  exit 1
+fi
+
+# ── Step 2: Migrate cache path if version changed ─────────────────────────────
+
+cached_version=$(basename "$install_path")
+
+if [[ "$cached_version" != "$plugin_version" ]]; then
+  new_path="${install_path%/*}/$plugin_version"
+  mkdir -p "$new_path"
+  rsync -a "$install_path/" "$new_path/"
+
+  python3 - "$INSTALLED_FILE" "$PLUGIN_KEY" "$cached_version" "$plugin_version" <<'PYEOF'
+import json, os, sys
+f, key, old_ver, new_ver = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+data = json.load(open(f))
+for e in data['plugins'][key]:
+    e['installPath'] = e['installPath'].replace(old_ver, new_ver)
+    e['version'] = new_ver
+tmp = f + '.tmp'
+with open(tmp, 'w') as fh:
+    json.dump(data, fh, indent=2)
+    fh.write('\n')
+os.replace(tmp, f)
+PYEOF
+
+  rm -rf "$install_path"
+  echo "  cache:   $cached_version -> $plugin_version"
+  install_path="$new_path"
+fi
+
+# ── Step 3: Sync repo contents to plugin cache ────────────────────────────────
+
+synced=0
+for item in skills hooks browse CLAUDE.md README.md setup verify statusline.sh scripts mcp-presets settings.json.example env.sh.example; do
+  src="$REPO_DIR/$item"
+  dst="$install_path/$item"
+  if [[ -e "$src" ]]; then
+    if [[ -d "$src" ]]; then
+      rsync -a --delete --exclude='node_modules' --exclude='bun.lock' "$src/" "$dst/"
+    else
+      cp "$src" "$dst"
+    fi
+    synced=$((synced + 1))
+  fi
+done
+
+# Also sync plugin metadata to cache root and .claude-plugin/ subdir
+# Claude Code reads .claude-plugin/plugin.json for the skill namespace (command prefix)
+for meta in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
+  src="$REPO_DIR/$meta"
+  if [[ -f "$src" ]]; then
+    cp "$src" "$install_path/$(basename "$meta")"
+    mkdir -p "$install_path/.claude-plugin"
+    cp "$src" "$install_path/$meta"
+  fi
+done
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+
+skill_count=$(ls "$install_path/skills/" 2>/dev/null | wc -l | tr -d ' ')
+hook_count=$(ls "$install_path/hooks/"*.py 2>/dev/null | wc -l | tr -d ' ')
+
+echo "synced $synced items to plugin cache"
+echo "  version: $plugin_version"
+echo "  skills:  $skill_count"
+echo "  hooks:   $hook_count"
+echo "  path:    $install_path"
+echo ""
+echo "Start a new session to pick up changes."

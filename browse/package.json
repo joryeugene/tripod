@@ -1,0 +1,17 @@
+{
+  "name": "tripod-browse",
+  "version": "0.1.0",
+  "description": "Headless browser for tripod. Based on gstack by Garry Tan (MIT).",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "bun build --compile src/cli.ts --outfile dist/browse && bun build --compile src/find-browse.ts --outfile dist/find-browse"
+  },
+  "dependencies": {
+    "playwright": "^1.58.2",
+    "diff": "^7.0.0"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}

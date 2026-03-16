@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Build the browse binary and ensure Playwright Chromium is available.
+# Based on gstack by Garry Tan (MIT). See LICENSE-gstack.
+set -e
+
+BROWSE_DIR="$(cd "$(dirname "$0")" && pwd)"
+BROWSE_BIN="$BROWSE_DIR/dist/browse"
+
+# 1. Build if needed
+NEEDS_BUILD=0
+if [ ! -x "$BROWSE_BIN" ]; then
+  NEEDS_BUILD=1
+elif [ -n "$(find "$BROWSE_DIR/src" -type f -newer "$BROWSE_BIN" -print -quit 2>/dev/null)" ]; then
+  NEEDS_BUILD=1
+elif [ "$BROWSE_DIR/package.json" -nt "$BROWSE_BIN" ]; then
+  NEEDS_BUILD=1
+fi
+
+if [ "$NEEDS_BUILD" -eq 1 ]; then
+  echo "Building browse binary..."
+  cd "$BROWSE_DIR"
+  bun install
+  bun run build
+fi
+
+if [ ! -x "$BROWSE_BIN" ]; then
+  echo "browse setup failed: binary missing at $BROWSE_BIN" >&2
+  exit 1
+fi
+
+# 2. Ensure Playwright Chromium is available
+if ! (cd "$BROWSE_DIR" && bun --eval 'import { chromium } from "playwright"; const browser = await chromium.launch(); await browser.close();') >/dev/null 2>&1; then
+  echo "Installing Playwright Chromium..."
+  cd "$BROWSE_DIR"
+  bunx playwright install chromium
+fi
+
+echo "browse ready: $BROWSE_BIN"

@@ -1,0 +1,9 @@
+{
+  "_description": "shadcn/ui component library search",
+  "mcpServers": {
+    "shadcn-ui": {
+      "command": "npx",
+      "args": ["-y", "shadcn-ui-mcp-server"]
+    }
+  }
+}

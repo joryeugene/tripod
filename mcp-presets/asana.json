@@ -1,0 +1,12 @@
+{
+  "_description": "Asana task management (requires ASANA_ACCESS_TOKEN)",
+  "mcpServers": {
+    "asana": {
+      "command": "npx",
+      "args": ["-y", "@roychri/mcp-server-asana"],
+      "env": {
+        "ASANA_ACCESS_TOKEN": ""
+      }
+    }
+  }
+}
