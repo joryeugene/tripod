@@ -20,10 +20,7 @@ Skills alone make Claude better at tasks. This makes Claude better at engineerin
              ./setup installs all three
 ```
 
-Plus two optional utilities that ship alongside:
-
-- `mcp-presets/` + `mcp-use` - one-command `.mcp.json` setup for any project
-- `scripts/mcp-use.sh` - the shell function, sourceable or executable directly
+MCP servers extend what Claude can reach. `mcp-use` manages them per-project.
 
 **Philosophy** (`CLAUDE.md`) defines how Claude reasons: the Tripod (antifragile, simple, research-first), the Contract (total saturation, no shortcuts), and the Error Recovery Protocol.
 
@@ -42,6 +39,8 @@ A hook that blocks em-dashes at the file write level is a different category of 
 CLAUDE.md works at a third level: it changes how Claude frames problems before any decision is made. The Tripod (antifragile, simple, research-first) runs before architecture, before implementation, before choosing what to build. Skills change what Claude does. CLAUDE.md changes how Claude thinks.
 
 The three layers are not additive. They are multiplicative. Each one makes the other two more effective.
+
+MCP servers are a different category. The three layers shape how Claude behaves within a session. MCPs extend what the session can see. Two in particular are substrate rather than tooling: [gitmcp](https://gitmcp.io) eliminates the knowledge cutoff by fetching live docs from any GitHub repo, and [keephive](https://github.com/joryeugene/keephive) eliminates statelessness by persisting memory, decisions, and knowledge across sessions. The three layers work on whatever Claude can access. These two expand what that is.
 
 ---
 
@@ -65,13 +64,30 @@ From any project directory:
 
 ```bash
 mcp-use                      # list available presets
+mcp-use best                 # .mcp.json <- gitmcp + hive (foundation)
 mcp-use browser              # .mcp.json <- ABP (deterministic browser automation)
 mcp-use ui                   # .mcp.json <- ABP + shadcn
 mcp-use browser workspace    # .mcp.json <- ABP + Google Workspace (merged)
 mcp-use all                  # .mcp.json <- everything
 ```
 
-To use as a shell function instead of a binary, source it from your shell profile:
+`best` is the foundation preset. It adds two servers that belong in every project:
+
+- **gitmcp** - fetches live documentation from any GitHub repo. Claude's training ends at August 2025; the libraries you use do not. Ask Claude to look up current docs and it reads them directly.
+- **hive** ([keephive](https://github.com/joryeugene/keephive)) - persistent memory across sessions. Facts, decisions, TODOs, and knowledge guides survive between conversations. Claude builds on prior work instead of starting from zero every time.
+
+Both are global servers: install once, available in all sessions.
+
+```bash
+# gitmcp
+claude mcp add --scope user gitmcp -- npx mcp-remote https://gitmcp.io/docs
+
+# hive (requires keephive installed first)
+uv tool install keephive
+claude mcp add --scope user hive -- keephive mcp-serve
+```
+
+To use `mcp-use` as a shell function instead of a binary, source it from your shell profile:
 
 ```bash
 source ~/.claude/skills/claude-stack/scripts/mcp-use.sh
@@ -262,6 +278,26 @@ Set `ABP_HEADLESS=1` to run without a visible window (CI, background verificatio
 
 ---
 
-## Related
+## keephive
 
-- [keephive](https://github.com/joryeugene/keephive) - knowledge sidecar for Claude Code: session memory, fact verification, the KingBee background daemon.
+[keephive](https://github.com/joryeugene/keephive) is the memory layer for Claude Code. It pairs directly with claude-stack.
+
+Claude Code sessions are stateless. Each conversation starts from zero. keephive fixes this: a background process captures facts, decisions, and TODOs during sessions, stores them in a structured daily log, and injects the relevant context back into future sessions via the `hive` MCP server.
+
+What it provides:
+
+- `hive_remember` - save a fact, decision, or TODO from the current session
+- `hive_recall` - search accumulated knowledge from all past sessions
+- `hive_status` - see what's pending, what's stale, what needs attention
+- Knowledge guides - reusable markdown files Claude loads when working in a specific domain
+- The KingBee daemon - background agent that verifies stale facts, drafts standups, and surfaces patterns across sessions
+
+Install:
+
+```bash
+uv tool install keephive
+claude mcp add --scope user hive -- keephive mcp-serve
+keephive setup   # registers hooks in ~/.claude/settings.json
+```
+
+The `best` preset (`mcp-use best`) adds the `hive` server to any project's `.mcp.json`.
