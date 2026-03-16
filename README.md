@@ -84,9 +84,8 @@ From any project directory:
 ```bash
 mcp-use                      # list available presets
 mcp-use best                 # .mcp.json <- gitmcp + hive (foundation)
-mcp-use browser              # .mcp.json <- ABP (deterministic browser automation)
-mcp-use ui                   # .mcp.json <- ABP + shadcn
-mcp-use browser workspace    # .mcp.json <- ABP + Google Workspace (merged)
+mcp-use ui                   # .mcp.json <- shadcn
+mcp-use workspace            # .mcp.json <- Google Workspace
 mcp-use all                  # .mcp.json <- everything
 ```
 
@@ -216,7 +215,7 @@ Each skill owns one moment in the workflow. Invoke with `/skill-name` in Claude 
 | `/accessibility-review` | WCAG 2.1 AA audit before shipping UI. Contrast, keyboard, screen reader, touch targets. |
 | `/impeccable-design` | Starting UI work. Visual identity before writing a line of code. |
 | `/visual-verify` | After UI changes. Element-level proof before declaring done. |
-| `/browser-testing` | Deep browser testing with ABP. Network, console, forms, multi-tab, authenticated API calls. |
+| `/browser-testing` | Deep browser testing with gstack. Network, console, forms, multi-tab, authenticated API calls. |
 | `/ship-pipeline` | Ready to ship. Pre-flight review, merge, test, commit, push, PR. |
 | `/sync` | Install, update, or sync claude-stack. Dev path runs `./sync`; user path runs `claude plugin install`. |
 
@@ -309,20 +308,22 @@ For custom skills outside this repo, create a second plugin directory and regist
 
 ## Browser automation
 
-The `browser` preset ships [Agent Browser Protocol](https://github.com/theredsix/agent-browser-protocol) (ABP), a Chromium fork with MCP baked into the engine.
+[gstack](https://github.com/garrytan/gstack) by Garry Tan is a persistent Chromium daemon built on Playwright and Bun. It replaces MCP-based browser tools with a CLI binary that returns plain text.
 
-Why ABP instead of Playwright or chrome-devtools:
+Why gstack:
 
-- **Step machine semantics**: JS and virtual time freeze between agent actions. The page waits for the agent, not the other way around.
-- **Automatic screenshots**: every action returns a screenshot. No extra calls needed.
-- **Native input**: events go through Chromium's actual input system, not CDP synthetic dispatch.
-- **~100ms overhead per action**: the bottleneck is the LLM, not the browser.
+- **Persistent daemon**: first call ~3s, subsequent calls 100-200ms. No cold start per action.
+- **Accessibility tree refs**: `snapshot` returns `@e1`, `@e2` refs. Fail fast (~5ms) on stale refs instead of 30-second timeouts.
+- **Zero MCP overhead**: plain CLI output, no protocol framing. Token-efficient.
+- **Cookie import**: `cookie-import-browser` pulls sessions from Chrome/Arc/Brave/Edge via macOS Keychain.
+- **30-min idle shutdown**: no zombie processes.
 
 ```bash
-mcp-use browser   # adds ABP to .mcp.json
+git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+cd ~/.claude/skills/gstack && ./setup
 ```
 
-Set `ABP_HEADLESS=1` to run without a visible window (CI, background verification).
+Requires [bun](https://bun.sh) v1.0+.
 
 ---
 

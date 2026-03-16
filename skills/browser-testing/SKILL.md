@@ -1,100 +1,117 @@
 ---
 name: browser-testing
-description: Deep browser testing with ABP (Agent Browser Protocol). Use when testing UI behavior, verifying network requests, checking console errors, filling forms, handling dialogs, or doing multi-tab testing. Covers the full ABP MCP tool inventory.
+description: Deep browser testing with gstack. Use when testing UI behavior, verifying network requests, checking console errors, filling forms, handling dialogs, or doing multi-tab testing. Covers the full gstack command inventory.
 ---
 
-# Browser Testing with ABP
+# Browser Testing with gstack
 
-ABP (Agent Browser Protocol) is a Chromium fork with MCP baked into the engine. It exposes a complete browser testing toolkit, not just screenshots. This skill covers the full tool inventory.
+[gstack](https://github.com/garrytan/gstack) is a persistent Chromium daemon built on Playwright and Bun by Garry Tan. It exposes a complete browser testing toolkit through a CLI binary. No MCP protocol, no token overhead from protocol framing. First call takes ~3 seconds to launch Chromium; subsequent calls take 100-200ms. Auto-shuts down after 30 minutes of inactivity.
 
-## Tool inventory
+## Installation
 
-**Navigation and screenshots**
-- `browser_navigate(url)` - navigate to URL; also accepts `action: "back" | "forward" | "reload"`
-- `browser_wait(animation)` - wait for network to settle, return screenshot. `animation=true` guarantees 5s of page execution for JS/CSS
-- `browser_screenshot(markup, disable_markup)` - take screenshot with optional overlays
+Requires [bun](https://bun.sh) v1.0+.
+
+```bash
+git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+cd ~/.claude/skills/gstack && ./setup
+```
+
+## Command reference
+
+**Navigation**
+- `goto <url>` - navigate to URL
+- `back` - go back
+- `forward` - go forward
+- `reload` - reload page
+- `url` - print current URL
+
+**Content reading**
+- `text` - get visible text content
+- `html` - get page HTML
+- `links` - list all links on page
+- `forms` - list all forms and their fields
+- `accessibility` - get accessibility tree
+
+**Snapshots (element refs)**
+- `snapshot` - get accessibility tree with `@e1`, `@e2` element refs
+- `snapshot -i` - inline mode (compact output)
+- `snapshot -c` - compact mode
+- `snapshot -d N` - limit depth to N levels
+- `snapshot -s <selector>` - scope to CSS selector
+- `snapshot -D` - diff mode (show what changed since last snapshot)
+- `snapshot -a` - annotate mode
+
+Element refs (`@e1`, `@e2`) are based on the accessibility tree, not DOM injection. They fail fast (~5ms) when the DOM has changed, instead of hanging for 30 seconds on a stale selector.
 
 **Interaction**
-- `browser_action(actions)` - click, type, keyboard press (1-3 actions per call, one screenshot returned)
-- `browser_clear_text(x, y)` - clear an input field by focus + select-all + backspace
-- `browser_scroll(x, y, scrolls)` - scroll with mouse wheel at coordinates
-- `browser_slider(orientation, min, max, target_value, ...)` - move a range input to a value
-- `browser_select_picker(popup_id, indices)` - choose from an open select dropdown
-- `browser_dialog(action)` - handle alert / confirm / prompt dialogs
+- `click [selector|@ref]` - click an element
+- `fill <selector|@ref> <text>` - fill a text input
+- `select <selector|@ref> <value>` - select dropdown option
+- `hover <selector|@ref>` - hover over element
+- `type <text>` - type text into focused element
+- `press <key>` - press a keyboard key (Enter, Tab, Escape, j, l, Shift+L, etc.)
+- `scroll [direction] [amount]` - scroll the page
+- `wait [selector|timeout]` - wait for element or duration
+- `viewport <width> <height>` - resize viewport
+- `upload <selector> <filepath>` - upload file to input
 
-**DOM inspection**
-- `browser_javascript(expression)` - execute JS, returns value and screenshot
-- `browser_text(selector)` - get visible text content, optionally scoped to a CSS selector
-- `browser_console(level, pattern, after_id)` - query buffered JS console messages
+**Debugging**
+- `js <expression>` - execute JavaScript, returns value
+- `eval <filepath>` - evaluate a JS file
+- `css <selector>` - get computed styles for element
+- `attrs <selector>` - get element attributes
+- `is <selector> <state>` - check if element is visible, enabled, checked, etc.
+- `console` - get console messages (errors, warnings, logs)
+- `network` - list captured network requests
+- `dialog` - check for and handle alert/confirm/prompt dialogs
+- `cookies` - list cookies
+- `storage` - inspect localStorage/sessionStorage
+- `perf` - performance metrics
 
-**Network**
-- `browser_network(action, url, status, include_body, tag)` - query, save, or clear captured requests
-- `browser_curl(tab_id, url, method, headers, body)` - HTTP request using the tab's session cookies
+**Visual capture**
+- `screenshot` - take viewport screenshot
+- `screenshot --viewport <w>x<h>` - screenshot at specific size
+- `screenshot --clip <selector>` - screenshot cropped to element
+- `pdf` - save page as PDF
+- `responsive` - screenshots at multiple breakpoints
 
-**Tabs and browser**
-- `browser_tabs(action, tab_id, url)` - list, new, close, info, activate, stop
-- `browser_get_status()` - check browser readiness
-- `browser_shutdown()` - shut down ABP
+**Cookie/Auth import**
+- `cookie-import <filepath>` - import cookies from JSON file
+- `cookie-import-browser` - auto-import sessions from Chrome/Arc/Brave/Edge via macOS Keychain
 
-**Files, downloads, permissions**
-- `browser_files` - handle file upload inputs
-- `browser_downloads` - query download state
-- `respond_to_permission` - accept or deny browser permission prompts
+**Tab management**
+- `tabs` - list open tabs
+- `tab <index>` - switch to tab by index
+- `newtab [url]` - open new tab
+- `closetab` - close current tab
 
 ---
 
 ## Standard test loop
 
 ```
-1. browser_navigate(url)
-2. browser_wait(animation=true)          # required: lets JS/SSE/fetch settle
-3. browser_console(level="error")        # catch load-time JS errors
-4. browser_javascript(DOM inspection)    # verify state before interacting
-5. browser_action([click or type])
-6. browser_wait()                        # wait for any triggered network calls
-7. browser_network(action="query")       # verify the right API call fired
+1. goto <url>
+2. snapshot                    # see initial state + get element refs
+3. console                    # check for JS errors on load
+4. js "DOM assertion"         # verify state before interacting
+5. click @e3 / press Enter    # perform action
+6. snapshot -D                # diff to see what changed
+7. network                    # verify API calls fired
 ```
 
-Every tool call returns a screenshot automatically. You do not need a separate `browser_screenshot` call after actions.
+After page mutations (clicks, form submissions, navigation), always re-snapshot before using element refs. Stale refs from a previous snapshot will fail fast with an error rather than silently targeting the wrong element.
 
 ---
 
 ## Network inspection
 
-ABP captures network requests on every action automatically.
+Check which API calls fired after an action:
 
-```javascript
-// After an action you expect to trigger a fetch:
-browser_network({
-  action: "query",
-  path: "/api/v1/items",
-  include_body: true
-})
+```
+network
 ```
 
-To preserve requests across multiple actions, tag them at the action level:
-
-```javascript
-browser_action({
-  actions: [{ type: "mouse_click", x: 350, y: 200 }],
-  network_tag: "submit-click"
-})
-
-// Later, query by tag:
-browser_network({ action: "query", tag: "submit-click", include_body: true })
-```
-
-For authenticated API testing using the browser's session cookies:
-
-```javascript
-browser_curl({
-  tab_id: "<tab_id from browser_tabs>",
-  url: "https://app.example.com/api/me",
-  method: "GET"
-})
-```
-
-This fires the request with the same cookies the logged-in browser session holds. No manual auth headers needed.
+For authenticated API testing, use `cookie-import-browser` to pull your real browser session, then `goto` the authenticated page directly.
 
 ---
 
@@ -102,144 +119,75 @@ This fires the request with the same cookies the logged-in browser session holds
 
 Check for JS errors immediately after page load and after significant interactions:
 
-```javascript
-browser_console({ level: "error" })
+```
+console
 ```
 
-To check only for new errors since the last check, use `after_id`:
-
-```javascript
-// First call: note the highest id in the response
-browser_console({ level: "error" })
-// → returns entries with ids [1, 2, 3], note id=3
-
-// Second call: only entries after id 3
-browser_console({ level: "error", after_id: 3 })
-```
-
-Filter by pattern to find specific errors:
-
-```javascript
-browser_console({ level: "warning", pattern: "React" })
-```
-
-Run `browser_console(level="error")` before declaring any page "working."
+Run `console` before declaring any page "working."
 
 ---
 
 ## Form testing
 
-**Text input (clear then type)**
+**Text input (clear then fill)**
 
-```javascript
-// 1. Clear the field
-browser_clear_text({ x: 400, y: 300 })
+```
+fill @e5 "new value"
+```
 
-// 2. Type the new value
-browser_action({ actions: [{ type: "keyboard_type", text: "new value" }] })
+Or with a CSS selector:
+
+```
+fill "#email" "user@example.com"
 ```
 
 **Select / dropdown**
 
-Click the select to open it. The response events include a `select_open` event with a `popup_id`. Then:
-
-```javascript
-browser_select_picker({ popup_id: "<from event>", indices: [2] })
+```
+select @e7 "Option B"
 ```
 
-To cancel without selecting: `browser_select_picker({ popup_id: "...", cancel: true })`
+**Keyboard shortcuts**
 
-**Range slider**
-
-```javascript
-browser_slider({
-  orientation: "horizontal",
-  y: 350,             // Y coordinate of track
-  x_start: 100,       // left edge of track
-  x_end: 500,         // right edge of track
-  current_x: 220,     // current thumb position
-  min: 0,
-  max: 100,
-  target_value: 75
-})
 ```
-
-If the slider has a non-linear scale or custom CSS, fall back to `browser_action` with `mouse_drag`.
+press j           # single key
+press Shift+L     # modifier + key
+press Enter       # submit
+press Escape      # dismiss
+press Tab         # focus next
+```
 
 **Dialogs (alert / confirm / prompt)**
 
-After triggering an action that opens a dialog:
-
-```javascript
-browser_dialog({ action: "check" })             // is a dialog pending?
-browser_dialog({ action: "accept" })            // click OK / confirm
-browser_dialog({ action: "dismiss" })           // click Cancel
-browser_dialog({ action: "accept", prompt_text: "my answer" })  // prompt input
+```
+dialog                 # check if dialog is pending
+dialog accept          # click OK
+dialog dismiss         # click Cancel
 ```
 
 ---
 
 ## Multi-tab testing
 
-```javascript
-// Open a second tab
-browser_tabs({ action: "new", url: "https://example.com/page2" })
-// → returns tab_id for the new tab
-
-// Act on a specific tab
-browser_action({
-  tab_id: "<new tab id>",
-  actions: [{ type: "mouse_click", x: 300, y: 200 }]
-})
-
-// Switch focus to the new tab
-browser_tabs({ action: "activate", tab_id: "<new tab id>" })
-
-// List all open tabs
-browser_tabs({ action: "list" })
 ```
-
-All tools accept an optional `tab_id`. Omit it to target the active tab.
-
----
-
-## Scroll handling
-
-Before scrolling, check whether the page is scrollable:
-
-```javascript
-// From any action response:
-scroll.pageHeight === scroll.viewportHeight   // true = no scrollable content, scroll is a no-op
+newtab https://example.com/page2
+tabs                   # list all open tabs
+tab 1                  # switch to tab by index
+closetab               # close current tab
 ```
-
-To scroll:
-
-```javascript
-browser_scroll({
-  x: 728,   // center of viewport
-  y: 500,
-  scrolls: [{ direction: "y", delta_px: 500 }]
-})
-
-// Scroll multiple viewports in one call (up to 3):
-browser_scroll({
-  x: 728, y: 500,
-  scrolls: [
-    { direction: "y", delta_px: 800 },
-    { direction: "y", delta_px: 800 },
-    { direction: "y", delta_px: 800 }
-  ]
-})
-```
-
-Each scroll in the array returns a separate screenshot.
 
 ---
 
 ## What NOT to do
 
-- Do not use `["grid"]` markup when you need element coordinates for cropping. Grid captures the full physical screen, not just the viewport.
-- Do not call `browser_scroll` without first checking `scroll.pageHeight === scroll.viewportHeight`. If they are equal, scrolling does nothing.
-- Do not trust a single screenshot as proof. Verify with `browser_javascript` (getBoundingClientRect) or `browser_text` before concluding anything.
-- Do not skip `browser_wait(animation=true)` after navigation. `browser_navigate` returns before JS executes. Without the wait, the page is blank or partially rendered.
-- Do not call `browser_screenshot` repeatedly to wait for state changes. Use `browser_wait` to let the page settle, then check once.
+- Do not trust a single screenshot as proof. Verify with `js` or `snapshot` to confirm DOM state matches visual appearance.
+- Do not use stale `@ref` element refs after page mutations. Always re-snapshot to get fresh refs.
+- Do not skip `console` after navigation. JS errors that break functionality are silent without checking.
+- Do not use `snapshot` as the only verification. Combine with `js` for precise DOM assertions (class presence, attribute values, computed styles).
+- Do not poll with repeated `screenshot` calls. Use `wait` to let the page settle, then check once.
+
+---
+
+## Credit
+
+Built by [Garry Tan](https://github.com/garrytan). Persistent Chromium daemon, Playwright locators, Bun compiled binary, accessibility tree element refs.

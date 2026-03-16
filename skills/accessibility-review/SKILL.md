@@ -56,7 +56,7 @@ Run these in order. Each layer catches what the previous one misses.
 Run the browser's accessibility audit or axe-core:
 
 ```javascript
-// In browser console (if ABP connected)
+// In browser console (via gstack js command)
 // Check for axe-core or lighthouse accessibility audit
 ```
 

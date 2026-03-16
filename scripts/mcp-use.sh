@@ -3,7 +3,7 @@
 #
 # Usage:
 #   mcp-use                      -> list available presets
-#   mcp-use browser              -> copy browser preset (ABP)
+#   mcp-use browser              -> (empty preset, browser testing uses gstack CLI)
 #   mcp-use workspace            -> copy workspace preset
 #   mcp-use browser workspace    -> merge both presets
 #
