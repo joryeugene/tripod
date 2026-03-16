@@ -47,21 +47,19 @@ MCP servers are a different category. The three layers shape how Claude behaves 
 ## Install
 
 ```bash
-# install from GitHub (no clone needed)
-claude plugin marketplace add github:joryeugene/claude-stack
-claude plugin install claude-stack
-./setup    # installs mcp-use, mcp-presets, statusline
-```
-
-Or clone first for local development:
-
-```bash
 git clone https://github.com/joryeugene/claude-stack.git
 cd claude-stack
 claude plugin marketplace add .
 claude plugin install claude-stack
 ./setup
 ```
+
+That's four commands:
+
+1. Clone the repo
+2. Register it as a local marketplace
+3. Install the plugin (hooks + skills auto-register)
+4. Run `./setup` — installs `mcp-use`, copies presets to `~/.config/mcp-presets/`, installs statusline
 
 Copy `CLAUDE.md` manually to `~/.claude/CLAUDE.md` (global) or your project root.
 
