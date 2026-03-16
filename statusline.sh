@@ -80,43 +80,21 @@ if [ -n "$model" ]; then
   fi
 fi
 
-# Billing mode: statsig cache is the ground truth for subscription type.
-# ANTHROPIC_API_KEY presence is NOT a reliable indicator - users can have
-# an API key set for other tools while running Claude Max via OAuth.
-# The statsig data is double-encoded JSON, so field values appear as escaped
-# strings. organizationUUID non-empty means Teams or Enterprise account.
+# Billing mode: claude auth status JSON.
+# authMethod "claude.ai" = OAuth subscription (Max/Pro/Enterprise).
+# orgName and orgId reflect email domain, not plan type -- not usable for tier detection.
 billing=""
-statsig_file=$(ls "$HOME/.claude/statsig/statsig.cached.evaluations."* 2>/dev/null | head -1)
-if [ -n "$statsig_file" ]; then
-  sub_type=$(grep -ao '"subscriptionType":"[^"]*"' "$statsig_file" 2>/dev/null \
-             | head -1 | sed 's/"subscriptionType":"//;s/"//')
-  org_uuid=$(grep -o 'organizationUUID\\":\\"[^\\]*\\"' "$statsig_file" 2>/dev/null \
-             | head -1 | sed 's/organizationUUID\\":\\"//;s/\\"//')
-  case "$sub_type" in
-    max)
-      if [ -n "$org_uuid" ]; then
-        billing="  max:team"
-      else
-        billing="  max"
-      fi ;;
-    pro)  billing="  pro" ;;
-    free) billing="  free" ;;
-    "")
-      # subscriptionType not found - check org UUID to infer team/enterprise
-      if [ -n "$org_uuid" ]; then
-        billing="  team"
-      fi ;;
-    *)    billing="  $sub_type" ;;
-  esac
-fi
-# Fallback: only invoke claude auth status if statsig found no subscription
-if [ -z "$billing" ] && [ -n "$ANTHROPIC_API_KEY" ]; then
-  auth_method=$(claude auth status 2>/dev/null | jq -r '.authMethod // empty')
+auth_json=$(claude auth status 2>/dev/null)
+if [ -n "$auth_json" ]; then
+  auth_method=$(echo "$auth_json" | jq -r '.authMethod // empty')
   if [ "$auth_method" = "claude.ai" ]; then
     billing="  max"
-  else
-    billing="  api"
   fi
+fi
+# Fallback if auth status unavailable or returned unknown auth method
+if [ -z "$billing" ]; then
+  if [ -z "$ANTHROPIC_API_KEY" ]; then billing="  max"
+  else billing="  api"; fi
 fi
 
 printf "%s%s%s%s%s%s%s" "$dir_name" "$git_branch" "$session_part" "$plan_part" "$ctx" "$model_short" "$billing"
