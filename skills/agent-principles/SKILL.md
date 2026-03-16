@@ -125,6 +125,7 @@ The claude-stack skills form a lifecycle. Each skill fires at a specific moment.
 |--------|-------|---------|
 | Before first line of UI code | `/impeccable-design` | Visual identity before implementation |
 | After UI changes | `/visual-verify` | Element-level proof, not full-page screenshots |
+| Before shipping UI | `/accessibility-review` | WCAG 2.1 AA audit, keyboard, contrast, screen reader |
 | Testing behavior in browser | `/browser-testing` | Network, console, forms, multi-tab |
 
 ### Review
@@ -133,6 +134,14 @@ The claude-stack skills form a lifecycle. Each skill fires at a specific moment.
 |--------|-------|---------|
 | Receiving PR feedback | `/code-review` | Read all, restate, YAGNI check, push back with evidence |
 | Before merge | `/code-review` | Dispatch reviewer subagent, two-stage review |
+
+### Incidents
+
+| Moment | Skill | Trigger |
+|--------|-------|---------|
+| Production down or alert fires | `/incident-response` | Triage, classify severity, assign roles |
+| During active incident | `/incident-response` | Status updates at fixed cadence |
+| After resolution | `/incident-response` | Blameless postmortem with 5 whys |
 
 ### Shipping
 

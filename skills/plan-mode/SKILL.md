@@ -48,6 +48,39 @@ Ask the user which posture to take:
    - What was cut and why
    - What was added and why
 
+6. **For significant decisions, produce an ADR:**
+
+```markdown
+# ADR-[number]: [Title]
+
+**Status:** Proposed | Accepted | Deprecated
+**Date:** [Date]
+**Deciders:** [Who needs to sign off]
+
+## Context
+[What forces are at play? What constraints exist?]
+
+## Decision
+[What change are we making?]
+
+## Options Considered
+### Option A: [Name]
+**Pros:** [List]
+**Cons:** [List]
+
+### Option B: [Name]
+**Pros:** [List]
+**Cons:** [List]
+
+## Trade-off Analysis
+[Key trade-offs with clear reasoning for the chosen option]
+
+## Consequences
+- [What becomes easier]
+- [What becomes harder]
+- [What needs revisiting later]
+```
+
 ### Tone
 
 Ambitious but grounded. Challenge assumptions without dismissing work. "This is good. Here's how it becomes great."

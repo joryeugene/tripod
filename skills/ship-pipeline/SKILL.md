@@ -169,6 +169,26 @@ Output the PR URL. Done.
 
 ---
 
+## Rollback Triggers
+
+Define these BEFORE deploying, not during an incident. If any trigger fires, roll back first, investigate second.
+
+| Trigger | Threshold | Action |
+|---------|-----------|--------|
+| Error rate | Exceeds 2x baseline for 5 minutes | Revert the deploy |
+| P50 latency | Exceeds 2x baseline for 5 minutes | Revert the deploy |
+| Critical user flow | Any core flow returns 5xx | Revert immediately |
+| Data integrity | Any unexpected data mutation | Revert immediately, freeze writes |
+
+### Rollback procedure
+
+1. Identify the last known good commit or deploy.
+2. Deploy that version (not a new fix). Restore service first.
+3. Confirm metrics return to baseline.
+4. Only then investigate the root cause on the reverted code.
+
+The instinct to "fix forward" is strong. Resist it during an active outage. Rollback restores service in minutes. A forward fix takes an unknown amount of time.
+
 ## Anti-Patterns
 
 - Force pushing. Never. Use fast-forward or resolve conflicts manually.

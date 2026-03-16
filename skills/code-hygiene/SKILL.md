@@ -50,6 +50,53 @@ Each AI response is an opportunity to introduce drift. Manage it actively:
 - Record architecture decisions as they happen.
 - At session end: check for orphaned imports, dead code, and uncovered changes.
 
+## Tech Debt Audit
+
+When invoked with `/code-hygiene debt`, run a systematic tech debt assessment.
+
+### Debt Categories
+
+| Type | Examples | Risk if ignored |
+|------|----------|-----------------|
+| Code | Duplicated logic, poor abstractions, magic numbers | Bugs, slow development |
+| Architecture | Monolith that needs splitting, wrong data store | Scaling limits |
+| Test | Low coverage, flaky tests, missing integration tests | Regressions ship undetected |
+| Dependency | Outdated libraries, unmaintained dependencies | Security vulnerabilities |
+| Documentation | Missing runbooks, outdated READMEs, tribal knowledge | Onboarding pain |
+| Infrastructure | Manual deploys, no monitoring, no IaC | Incidents, slow recovery |
+
+### Prioritization
+
+Score each item on three dimensions:
+
+- **Impact** (1-5): How much does it slow the team down?
+- **Risk** (1-5): What happens if it stays unfixed?
+- **Effort** (1-5): How hard is the fix?
+
+**Priority = (Impact + Risk) x (6 - Effort)**
+
+High score = fix first. Low effort amplifies urgency. High effort dampens it.
+
+### Output
+
+```markdown
+## Tech Debt Audit: [Project Name]
+
+| # | Item | Category | Impact | Risk | Effort | Priority | Action |
+|---|------|----------|--------|------|--------|----------|--------|
+| 1 | [Description] | Code | 4 | 5 | 2 | 36 | [Fix] |
+| 2 | [Description] | Test | 3 | 4 | 1 | 35 | [Fix] |
+
+### Phase 1 (this sprint)
+[Top 3 items by priority score]
+
+### Phase 2 (next sprint)
+[Next 3 items]
+
+### Accepted debt
+[Items intentionally deferred with justification]
+```
+
 ## Anti-Patterns
 
 - Writing a new utility without searching for an existing one first. Three similar lines of code are better than a premature abstraction, but five separate implementations are a maintenance problem.

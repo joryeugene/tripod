@@ -154,11 +154,15 @@ source ~/.local/bin/mcp-use
        |   (building UI?)
        +--- /impeccable-design ------ visual identity before a line of code
        +--- /visual-verify ---------- element-level proof after UI changes
+       +--- /accessibility-review --- WCAG 2.1 AA before shipping UI
        +--- /browser-testing -------- network, console, forms, multi-tab
        |
        |   (review)
        +--- /code-review ------------ receiving feedback? restate, YAGNI check
        |                              requesting review? dispatch subagent
+       |
+       |   (incident)
+       +--- /incident-response ------ production down? triage, comms, postmortem
        |
        v
    /ship-pipeline ------ pre-flight review, merge, test, commit, push, PR
@@ -206,8 +210,10 @@ Each skill owns one moment in the workflow. Invoke with `/skill-name` in Claude 
 | `/verification-workflow` | After any code change. Prove it works before moving on. |
 | `/performance` | Code is slow. Queries taking too long. Suspect N+1, O(n squared), or missing indexes. |
 | `/security-review` | Feature touches user input, auth, file paths, or database queries. |
-| `/code-hygiene` | AI-session debt accumulating: dead exports, duplicate logic, orphaned types. |
+| `/code-hygiene` | AI-session debt accumulating: dead exports, duplicate logic, orphaned types. Also: `/code-hygiene debt` for tech debt audit with prioritization. |
 | `/code-review` | Receiving PR feedback or requesting review before merge. Restate, YAGNI check, two-stage review. |
+| `/incident-response` | Production down or alert fires. Severity classification, comms, blameless postmortem with 5 whys. |
+| `/accessibility-review` | WCAG 2.1 AA audit before shipping UI. Contrast, keyboard, screen reader, touch targets. |
 | `/impeccable-design` | Starting UI work. Visual identity before writing a line of code. |
 | `/visual-verify` | After UI changes. Element-level proof before declaring done. |
 | `/browser-testing` | Deep browser testing with ABP. Network, console, forms, multi-tab, authenticated API calls. |
