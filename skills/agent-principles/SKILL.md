@@ -133,6 +133,12 @@ The claude-stack skills form a lifecycle. Each skill fires at a specific moment.
 |--------|-------|---------|
 | Ready to merge | `/ship-pipeline` | Pre-flight review, test, commit, push, PR |
 
+### Maintenance
+
+| Moment | Skill | Trigger |
+|--------|-------|---------|
+| Update plugin or sync local changes | `/sync` | Install, update, or sync claude-stack |
+
 ### Always active (no invocation needed)
 
 | Skill | Role |
