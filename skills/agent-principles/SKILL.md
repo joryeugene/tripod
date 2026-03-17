@@ -133,8 +133,8 @@ The claude-stack skills form a lifecycle. Each skill fires at a specific moment.
 
 | Moment | Skill | Trigger |
 |--------|-------|---------|
-| Receiving PR feedback | `/code-review` | Read all, restate, YAGNI check, push back with evidence |
-| Before merge | `/code-review` | Dispatch reviewer subagent, two-stage review |
+| Receiving PR feedback | `/pr-review` | Read all, restate, YAGNI check, push back with evidence |
+| Before merge | `/pr-review` | Dispatch reviewer subagent, two-stage review |
 
 ### Incidents
 

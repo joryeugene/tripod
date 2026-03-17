@@ -176,7 +176,7 @@ source ~/.local/bin/mcp-use
        +--- /browser-testing -------- network, console, forms, multi-tab
        |
        |   (review)
-       +--- /code-review ------------ receiving feedback? restate, YAGNI check
+       +--- /pr-review -------------- receiving feedback? restate, YAGNI check
        |                              requesting review? dispatch subagent
        |
        |   (incident)
@@ -253,7 +253,7 @@ Each skill owns one moment in the workflow. Invoke with `/skill-name` in Claude 
 | `/performance` | Code is slow. Queries taking too long. Suspect N+1, O(n squared), or missing indexes. |
 | `/security-review` | Feature touches user input, auth, file paths, or database queries. |
 | `/code-hygiene` | AI-session debt accumulating: dead exports, duplicate logic, orphaned types. Also: `/code-hygiene debt` for tech debt audit with prioritization. |
-| `/code-review` | Receiving PR feedback or requesting review before merge. Restate, YAGNI check, two-stage review. |
+| `/pr-review` | Receiving PR feedback or requesting review before merge. Restate, YAGNI check, two-stage review. |
 | `/incident-response` | Production down or alert fires. Severity classification, comms, blameless postmortem with 5 whys. |
 | `/visual-design` | Starting UI work. Visual identity: color, typography, spacing, the AI slop test. |
 | `/interaction-design` | Before shipping UI behavior or auditing for compliance. Audience dimensions, discoverability, modes, feedback, WCAG 2.1 AA. |

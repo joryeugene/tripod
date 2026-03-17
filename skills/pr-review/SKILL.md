@@ -1,12 +1,12 @@
 ---
-name: code-review
+name: pr-review
 description: Use when receiving PR feedback or when requesting a code review before merge. Covers both directions: responding to reviewer comments and dispatching a review subagent.
 user-invocable: true
 ---
 
 # Code Review
 
-Two modes. Invoke with `/code-review receiving` or `/code-review requesting`. If no argument, ask which mode.
+Two modes. Invoke with `/pr-review receiving` or `/pr-review requesting`. If no argument, ask which mode.
 
 ---
 
