@@ -1,19 +1,15 @@
 # claude-stack  v1.0
 
 ```
-         /\_____/\
-        (  >   <  )
-         \  ---  /    clawd
-          )_____(
-         (_)   (_)
-
-    ┌──────────────────────────────┐
-    │  CLAUDE.md                   │  philosophy   always loaded
-    ├──────────────────────────────┤
-    │  hooks/                      │  enforcement  always fires
-    ├──────────────────────────────┤
-    │  skills/                     │  workflow     on demand
-    └──────────────────────────────┘
+    ▐▛███▜▌
+   ▝▜█████▛▘   skills/       workflow     on demand
+     ▘▘ ▝▝
+    ▐▛███▜▌
+   ▝▜█████▛▘   hooks/        enforcement  always fires
+     ▘▘ ▝▝
+    ▐▛███▜▌
+   ▝▜█████▛▘   CLAUDE.md     philosophy   always loaded
+     ▘▘ ▝▝
 
     19 skills  ·  5 hooks  ·  1 CLAUDE.md
 ```

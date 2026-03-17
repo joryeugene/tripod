@@ -1,7 +1,6 @@
 ---
 name: release
 description: Use when cutting a versioned release. Detects commits since last tag, suggests semver bump, bumps version file, tags, pushes, and creates a GitHub release. Distinct from ship-pipeline which ends with a PR.
-disable-model-invocation: true
 ---
 
 # Release
