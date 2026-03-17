@@ -39,6 +39,24 @@ Encode the verified behavior as a permanent test with `/tdd` so the proof surviv
 - Every claim needs: API response + code reference + expected output
 - If you haven't seen it work, don't claim it works
 
+## Per-Change-Type Verification
+
+Different changes require different proof. Generic "run tests" is not enough.
+
+| Change type | Minimum proof |
+|-------------|---------------|
+| API endpoint | `curl` before and after. Compare field names, status codes, and response shape. |
+| Database query | `EXPLAIN ANALYZE` before and after. Compare rows scanned and plan type. |
+| Database schema | Query the table post-migration. Confirm expected columns, types, and row count. |
+| UI component | Element-level screenshot (not full-page). See `/visual-verify`. |
+| CLI command | `<command> 2>&1; echo "Exit: $?"`. Both stdout and exit code must be shown. |
+| File write | Read the file back immediately after. Verify the content matches intent. |
+| Test change | Run the full test suite. Show pass/fail counts and any new failures. |
+| Build artifact | Confirm the artifact exists with expected size. Run a smoke test against it. |
+| Config change | Show the running process or service has picked up the new value. |
+
+Empty output is not success. If a command produces no output, check the exit code and the code path. See the BANNED pattern: "Ignoring empty output."
+
 ## When You Can't Verify
 
 Say explicitly: "I cannot verify this works because [reason]. Please verify by running [command]."

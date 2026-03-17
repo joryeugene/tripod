@@ -95,6 +95,37 @@ Use a fresh subagent for each review stage. The implementing agent's context bia
 
 If either stage fails: fix the issue and re-review. Do not skip re-review after a fix.
 
+## Worktree Isolation
+
+For risky or experimental changes, spawn agents with `isolation: "worktree"`. Each agent gets its own git branch and working tree.
+
+```
+Task {
+  subagent_type: "general-purpose",
+  isolation: "worktree",
+  prompt: "..."
+}
+```
+
+When to use: changes you want to review before merging, experimental implementations, or when two agents need to make conflicting edits to the same file (each owns a branch rather than a file).
+
+The worktree auto-cleans if the agent makes no changes. If changes are made, the branch stays for review and merge.
+
+## Cost Model
+
+Parallel agents do not reduce total token consumption. They reduce wall-clock time. Understand the trade-offs before scaling.
+
+| Agents | Effect | Risk |
+|--------|--------|------|
+| 2-3 | Clear wins for independent streams | Low |
+| 3-5 | Sweet spot. Coordination still tractable | Medium |
+| 5+ | Coordination overhead starts eating the gain | High |
+| 10+ | Context duplication usually exceeds parallelism benefit | Very high |
+
+Each agent consumes its own full context window. A `broadcast` message multiplies by N agents -- use it sparingly. Use `message` (DM) for targeted coordination.
+
+Cost signals that parallelism is hurting: you spend more time reviewing agent output than the agents spent producing it, or merge conflicts require manual work that exceeds the time saved.
+
 ## Anti-Patterns
 
 - Same-file edits: two agents touching one file always produces conflicts. Split by file ownership.

@@ -88,6 +88,35 @@ This test fails if `process_order` is deleted, its charge logic is broken, or it
 
 ---
 
+## Characterization Tests (Existing Code)
+
+TDD's red-green-refactor assumes a blank slate. Most real work does not. When changing code that has no tests, the discipline is: characterize before changing.
+
+A characterization test captures what the code **does**, not what it **should** do. It does not assert correctness. It asserts current behavior so that any unintended change breaks a test.
+
+```python
+# CHARACTERIZATION: lock in current output before refactoring
+def test_format_address_current_behavior():
+    # Run the function. Record whatever it returns.
+    result = format_address({"street": "123 Main", "city": "Portland"})
+    # Assert the exact current output -- even if it looks wrong.
+    assert result == "123 Main, Portland"  # this may be the "wrong" format
+    # But changing it unexpectedly will now break this test.
+```
+
+The sequence:
+
+1. Write characterization tests for the code you are about to change.
+2. Run them. They must pass green (they describe current behavior).
+3. Now make your structural change.
+4. Any test that breaks is a regression. Fix it or update the characterization intentionally.
+
+The distinction: a TDD test asserts the desired behavior (written before the code). A characterization test asserts the observed behavior (written before a change to existing code). Both serve the same purpose: a failing test catches unintended breakage.
+
+Write characterization tests at the boundaries. The function signature, the return value, and key side effects. Do not characterize internals.
+
+---
+
 ## The Forbidden Pattern
 
 ```python
