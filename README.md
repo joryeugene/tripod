@@ -162,7 +162,8 @@ source ~/.local/bin/mcp-use
        |                              keep the codebase clean.
        |
        |   (building UI?)
-       +--- /impeccable-design ------ visual identity before a line of code
+       +--- /visual-design ----------- visual identity before a line of code
+       +--- /interaction-design ----- modes, feedback, discoverability before shipping
        +--- /visual-verify ---------- element-level proof after UI changes
        +--- /accessibility-review --- WCAG 2.1 AA before shipping UI
        +--- /browser-testing -------- network, console, forms, multi-tab
@@ -224,7 +225,8 @@ Each skill owns one moment in the workflow. Invoke with `/skill-name` in Claude 
 | `/code-review` | Receiving PR feedback or requesting review before merge. Restate, YAGNI check, two-stage review. |
 | `/incident-response` | Production down or alert fires. Severity classification, comms, blameless postmortem with 5 whys. |
 | `/accessibility-review` | WCAG 2.1 AA audit before shipping UI. Contrast, keyboard, screen reader, touch targets. |
-| `/impeccable-design` | Starting UI work. Visual identity before writing a line of code. |
+| `/visual-design` | Starting UI work. Visual identity: color, typography, spacing, the AI slop test. |
+| `/interaction-design` | Before shipping UI behavior. Discoverability, modes, feedback timing, keyboard-first. |
 | `/visual-verify` | After UI changes. Element-level proof before declaring done. |
 | `/browser-testing` | Deep browser testing with gstack. Network, console, forms, multi-tab, authenticated API calls. |
 | `/ship-pipeline` | Ready to ship. Pre-flight review, merge, test, commit, push, PR. |

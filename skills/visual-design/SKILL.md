@@ -1,9 +1,9 @@
 ---
-name: impeccable-design
-description: Audit any application's visual identity and generate a distinctive design direction that passes the AI slop test.
+name: visual-design
+description: Audit any application's visual identity and generate a distinctive direction that passes the AI slop test. Use before writing UI code to set color, typography, spacing, and motion tokens.
 ---
 
-# Impeccable Design
+# Visual Design
 
 Derives a distinctive visual direction from the semantic identity of any application, then produces concrete design tokens, palette, typography, and spatial choices that pass the AI slop test.
 
