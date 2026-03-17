@@ -155,7 +155,7 @@ The claude-stack skills form a lifecycle. Each skill fires at a specific moment.
 
 | Moment | Skill | Trigger |
 |--------|-------|---------|
-| Update plugin or sync local changes | `/sync` | Install, update, or sync claude-stack |
+| Update plugin or sync local changes | `/update` | Install, update, or sync claude-stack |
 
 ### Always active (no invocation needed)
 

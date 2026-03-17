@@ -163,7 +163,7 @@ When the plan is approved and has multiple tasks:
 - Skipping CEO mode entirely because "the problem is obvious." The most expensive bugs are the ones where you built the wrong thing correctly.
 - Skipping diagrams in eng mode. Hand-waving about architecture is not a plan. Force the assumptions into the open.
 - Skipping the 10-star version in CEO mode. Even when the final scope is modest, articulate what the vision would be.
-- Starting implementation without running `/pre-ship` when the work is ready to land.
+- Starting implementation without running `/ship-pipeline` when the work is ready to land.
 - Rationalizing past the hard gate. "Let me just start with this one file" is code before design. Stop.
 
 ## The Floor
