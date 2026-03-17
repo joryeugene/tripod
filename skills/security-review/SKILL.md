@@ -262,6 +262,20 @@ Before shipping any feature touching user input, auth, files, or databases:
 
 ---
 
+## Artifact
+
+After completing the checklist, write the findings to disk:
+
+```
+docs/audits/security-YYYY-MM-DD-<name>.md
+```
+
+Where `<name>` is 2-4 words in kebab-case describing the feature reviewed (e.g., `user-file-upload`, `payment-checkout-flow`). Derive it from the feature being reviewed.
+
+Use the Write tool to create the file containing the checklist results, any flagged issues, and the patterns checked. Print the path after writing: `Saved: docs/audits/security-YYYY-MM-DD-<name>.md`
+
+---
+
 ## Anti-Patterns
 
 - Sanitizing input as the primary defense. Parameterization is the defense. Sanitization is a supplement.

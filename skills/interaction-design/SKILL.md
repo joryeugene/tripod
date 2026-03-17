@@ -288,6 +288,18 @@ With VoiceOver (macOS) or NVDA:
 |---|----------|-------|----------|-----|
 ```
 
+### Artifact
+
+After completing the audit, write it to disk:
+
+```
+docs/audits/interaction-YYYY-MM-DD-<name>.md
+```
+
+Where `<name>` is 2-4 words in kebab-case describing the component or page audited (e.g., `checkout-flow`, `dashboard-main`). Derive it from the audit subject.
+
+Use the Write tool to create the file with the full audit output. Print the path after writing: `Saved: docs/audits/interaction-YYYY-MM-DD-<name>.md`
+
 ---
 
 ## The Cutting Edge

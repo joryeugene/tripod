@@ -113,6 +113,16 @@ High score = fix first. Low effort amplifies urgency. High effort dampens it.
 [Items intentionally deferred with justification]
 ```
 
+### Artifact
+
+After completing the debt audit, write it to disk:
+
+```
+docs/audits/debt-YYYY-MM-DD.md
+```
+
+Use the Write tool to create the file with the full audit table and phased action plan. Print the path after writing: `Saved: docs/audits/debt-YYYY-MM-DD.md`
+
 ## Anti-Patterns
 
 - Writing a new utility without searching for an existing one first. Three similar lines of code are better than a premature abstraction, but five separate implementations are a maintenance problem.

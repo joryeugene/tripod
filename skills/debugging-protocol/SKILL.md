@@ -154,6 +154,20 @@ If step 3 produces only "we'll be more careful" or "we'll add a note to the docs
 
 ---
 
+## Artifact
+
+After completing Phase 2, write the RCA to disk:
+
+```
+docs/rca/YYYY-MM-DD-<bug-name>.md
+```
+
+Where `<bug-name>` is 2-4 words in kebab-case describing the bug class (e.g., `null-foreign-key-index`, `schema-field-mismatch`). Derive it from the failure named in Phase 2 Step 1.
+
+Use the Write tool to create `docs/rca/YYYY-MM-DD-<bug-name>.md` containing the Phase 2 analysis: failure name, root cause trace, structural prevention, and any BANNED entry added. Print the path after writing: `Saved: docs/rca/YYYY-MM-DD-<bug-name>.md`
+
+---
+
 ## Anti-Patterns
 
 - Launching "investigation plans" before checking schema. The data is almost always the problem.

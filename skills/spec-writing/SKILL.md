@@ -75,6 +75,20 @@ No code until all seven sections are complete. If a section cannot be written, t
 
 ---
 
+## Artifact
+
+After completing all seven sections, write the spec to disk:
+
+```
+docs/specs/YYYY-MM-DD-<name>.md
+```
+
+Where `<name>` is 2-4 words in kebab-case derived from the feature being specced (e.g., `user-auth-redesign`, `payment-webhook-handler`). If the name is not clear from context, use `untitled`.
+
+Use the Write tool to create `docs/specs/YYYY-MM-DD-<name>.md` with the full spec content. Print the path after writing: `Saved: docs/specs/YYYY-MM-DD-<name>.md`
+
+---
+
 ## After the Spec
 
 When all seven sections are written, the spec is the input to `/plan-mode`. CEO mode reads the spec to evaluate whether the right problem was identified. Eng mode reads the spec and designs the implementation. Do not invoke plan-mode before the spec exists.

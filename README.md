@@ -1,4 +1,22 @@
-# claude-stack
+# claude-stack  v1.0
+
+```
+         /\_____/\
+        (  >   <  )
+         \  ---  /    clawd
+          )_____(
+         (_)   (_)
+
+    ┌──────────────────────────────┐
+    │  CLAUDE.md                   │  philosophy   always loaded
+    ├──────────────────────────────┤
+    │  hooks/                      │  enforcement  always fires
+    ├──────────────────────────────┤
+    │  skills/                     │  workflow     on demand
+    └──────────────────────────────┘
+
+    19 skills  ·  5 hooks  ·  1 CLAUDE.md
+```
 
 Skills alone make Claude better at tasks. This makes Claude better at engineering.
 
@@ -184,6 +202,28 @@ source ~/.local/bin/mcp-use
 
    /update                  install, update, or sync claude-stack
 ```
+
+---
+
+## Artifacts
+
+Skills that produce structured output write their results to disk automatically. No confirmation prompt. The path is printed after writing.
+
+```
+docs/
+  specs/        <- /spec-writing      2026-03-17-feature-name.md
+  plans/        <- /plan-mode         2026-03-17-feature-name.md (CEO)
+                                      2026-03-17-feature-name-eng.md (Eng)
+  audits/       <- /security-review   security-2026-03-17-feature-name.md
+                   /interaction-design  interaction-2026-03-17-component.md
+                   /code-hygiene debt   debt-2026-03-17.md
+  incidents/    <- /incident-response  postmortem-2026-03-17-title.md
+  rca/          <- /debugging-protocol 2026-03-17-bug-class.md
+```
+
+`/plan-mode` checks `docs/specs/` for a recent spec before asking for context, and reads existing plan files the same way.
+
+These files are not committed automatically. Add them to `.gitignore` to keep them session-local, or commit them as project records. Either is correct depending on the project.
 
 ---
 

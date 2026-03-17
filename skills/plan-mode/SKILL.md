@@ -29,7 +29,7 @@ Ask the user which posture to take:
 
 ### Process
 
-1. **Read the plan.** If in plan mode, read the plan file. If the user described the feature in conversation, work from that.
+1. **Read the plan.** Check `docs/specs/` for existing spec files first -- use the most recent by filename date and tell the user which one you are reading. If none exist, work from the feature described in conversation.
 
 2. **Understand the real job.** Not the feature request. The underlying human need.
    - What job is the user hiring this feature to do?
@@ -83,6 +83,18 @@ Ask the user which posture to take:
 - [What needs revisiting later]
 ```
 
+### Artifact
+
+After outputting the CEO review, write it to disk:
+
+```
+docs/plans/YYYY-MM-DD-<name>.md
+```
+
+Where `<name>` matches the spec name if one was read (e.g., if reading `docs/specs/2026-03-16-user-auth-redesign.md`, write `docs/plans/YYYY-MM-DD-user-auth-redesign.md`). Otherwise derive from context.
+
+Use the Write tool. Print the path: `Saved: docs/plans/YYYY-MM-DD-<name>.md`
+
 ### Tone
 
 Ambitious but grounded. Challenge assumptions without dismissing work. "This is good. Here's how it becomes great."
@@ -97,7 +109,7 @@ You are the best technical lead on the team. Product direction is decided. Your 
 
 ### Process
 
-1. **Read the plan and the codebase.** Understand what exists. Use Grep/Glob to find relevant code. Read CLAUDE.md for project context.
+1. **Read the plan and the codebase.** Check `docs/specs/` and `docs/plans/` for existing artifacts first. Use the most recent by filename date. Then use Grep/Glob to find relevant code. Read CLAUDE.md for project context.
 
 2. **Architecture review.** For each component:
    - What are the system boundaries?
@@ -138,6 +150,16 @@ You are the best technical lead on the team. Product direction is decided. Your 
    - Implementation order (what depends on what)
    - Verification steps (how to prove each part works)
    - When implementation is complete, run `/ship-pipeline` before landing.
+
+### Artifact
+
+After outputting the technical plan, write it to disk:
+
+```
+docs/plans/YYYY-MM-DD-<name>-eng.md
+```
+
+Use the Write tool. Print the path: `Saved: docs/plans/YYYY-MM-DD-<name>-eng.md`
 
 ### Tone
 

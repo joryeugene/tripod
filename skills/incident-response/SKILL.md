@@ -179,6 +179,22 @@ Postmortems examine systems, not people. Replace "X forgot to" with "the system 
 
 ---
 
+## Artifact
+
+After completing the postmortem, write it to disk:
+
+```
+docs/incidents/postmortem-YYYY-MM-DD-<title>.md
+```
+
+Where `<title>` is 2-4 words in kebab-case derived from the incident (e.g., `database-connection-exhausted`, `payment-service-timeout`). Derive it from the incident title.
+
+Use the Write tool to create the file with the full postmortem content. Print the path after writing: `Saved: docs/incidents/postmortem-YYYY-MM-DD-<title>.md`
+
+Triage and update outputs are ephemeral (Slack/status page); only the postmortem is saved.
+
+---
+
 ## Anti-Patterns
 
 - Speculating in status updates. State facts or say "investigating."
