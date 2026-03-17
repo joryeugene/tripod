@@ -140,20 +140,14 @@ source ~/.local/bin/mcp-use
        |
    coding begins
        |
-       +--- /tdd + /verification-workflow  starting implementation from the plan
+       +--- /tdd + /verification-workflow  implementing from the plan
        |    (+ /agent-orchestration if 3+ independent tasks)
-       |
-       +--- /tdd -------------------- writing any feature or test?
-       |                              failing test first, always
        |
        +--- /debugging-protocol ----- something broken?
        |                              check data before theorizing
        |
        +--- /rca ------------------- bug fixed? make it structurally impossible
        |                              root cause, prevention, BANNED entry
-       |
-       +--- /verification-workflow -- after every change:
-       |                              prove it works, show evidence
        |
        +--- /performance ------------ slow? queries taking too long?
        |                              measure, name the pattern, fix one thing
