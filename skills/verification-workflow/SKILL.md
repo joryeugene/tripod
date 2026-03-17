@@ -30,7 +30,7 @@ For every change, show:
 2. **Actual output:** paste the real output (not "should work")
 3. **Success indicator:** "All tests passed" or "Build successful"
 
-Encode the verified behavior as a permanent test with `/testing-strategy` so the proof survives future sessions.
+Encode the verified behavior as a permanent test with `/tdd` so the proof survives future sessions.
 
 ## Evidence Standards
 

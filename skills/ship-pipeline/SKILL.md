@@ -34,8 +34,8 @@ If on `main` or `master`: abort with "Ship from a feature branch."
 
 ```bash
 git status
-git diff main...HEAD --stat
-git log main..HEAD --oneline
+git diff HEAD...$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}') --stat
+git log $(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')..HEAD --oneline
 ```
 
 ---
@@ -58,10 +58,19 @@ If no `## Ship` section: ask the user "What command runs your tests?" and "What 
 
 ---
 
-## Step 3: Merge origin/main
+## Step 3: Merge origin default branch
+
+Detect the project's default branch first:
 
 ```bash
-git fetch origin main && git merge origin/main --no-edit
+git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
+```
+
+Then merge:
+
+```bash
+DEFAULT=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
+git fetch origin $DEFAULT && git merge origin/$DEFAULT --no-edit
 ```
 
 If merge conflicts: try to auto-resolve simple ones (version files, lockfiles). If complex, stop and show them.
@@ -83,7 +92,8 @@ If tests pass: note the counts briefly and continue.
 ## Step 5: Pre-landing review
 
 ```bash
-git diff origin/main
+DEFAULT=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
+git diff origin/$DEFAULT
 ```
 
 Read the FULL diff before commenting. Do not flag issues already addressed in the diff.

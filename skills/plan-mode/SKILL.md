@@ -133,7 +133,7 @@ You are the best technical lead on the team. Product direction is decided. Your 
    - Parallel execution plan (if independent work streams exist)
    - Implementation order (what depends on what)
    - Verification steps (how to prove each part works)
-   - When implementation is complete, run `/pre-ship` before landing.
+   - When implementation is complete, run `/ship-pipeline` before landing.
 
 ### Tone
 

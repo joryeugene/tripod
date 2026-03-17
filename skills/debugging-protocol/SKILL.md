@@ -24,7 +24,17 @@ Trace backwards from the symptom:
 2. What does the API actually return?
 3. Where does the chain break?
 
-## Step 3: Proof-Based Fixing
+## Step 3: Trace the Call Chain
+
+If schema is confirmed correct, trace execution from entry to symptom:
+
+1. Add logging or print at each layer boundary (input, transform, output).
+2. Identify the first layer where the value diverges from expectation.
+3. The bug lives at that boundary, not downstream of it.
+
+Never add logging at the symptom. Add it where the data changes hands.
+
+## Step 4: Proof-Based Fixing
 
 Show BEFORE/AFTER with evidence:
 
@@ -34,12 +44,40 @@ Show BEFORE/AFTER with evidence:
 
 Once fixed, run `/verification-workflow` to prove the fix holds under the full change cycle.
 
+## Step 5: Empty Output Is Not Success
+
+If a command returns no output, that is a failure signal, not a clean pass.
+
+```bash
+# Wrong: silent exit, no output, assumed success
+./run-tests
+
+# Right: capture stderr too, check exit code
+./run-tests 2>&1; echo "Exit: $?"
+```
+
+Empty output causes: command not found (silently resolved), test runner found zero tests, build step produced no artifact, API returned 0 results. Each requires investigation, not assumption.
+
 ## Hierarchy of Causes
 
 1. Schema mismatch (80%)
 2. Null or missing data (10%)
 3. Logic error (5%)
 4. Complex state issue (5%)
+
+## AI-Specific Failure Modes
+
+AI-generated code has a distinct failure signature beyond the standard hierarchy.
+
+| Failure | Signs | Check |
+|---------|-------|-------|
+| Hallucinated API | Method exists in docs but not in library version | `grep -r "method_name" node_modules/` or read the actual source |
+| Wrong import path | Code imports from correct package name but wrong sub-path | Check actual export structure in node_modules or site-packages |
+| Stale field name | Code uses old field name after API migration | Compare current API response against field names in code |
+| Invented method signature | Right method, wrong argument order or names | Read the function signature directly, do not trust training data |
+| Version mismatch | Code uses API syntax from a different major version | Check `package.json` or `requirements.txt` against the syntax used |
+
+When an AI-generated function call fails with "not a function", "undefined is not", or "unexpected keyword argument": check the actual library source before assuming logic error. The method may not exist as written.
 
 ## Rationalization Red Flags
 
@@ -60,7 +98,9 @@ These thoughts mean you are about to skip the protocol. Recognize them and stop.
 - Skipping the BEFORE/AFTER structure. Fixes without evidence cannot be confirmed.
 - Repeating the same approach after it fails. Stop, get actual data, then try a different path.
 - Theorizing about logic errors before verifying field names. Check the data first.
+- Treating empty output as success. No output means the command failed silently, the test runner found nothing, or the query returned zero rows. Investigate before moving on.
+- Trusting training-data knowledge of library APIs. Read the actual source. Hallucinated method signatures are a real failure mode in AI-generated code.
 
 ## The Floor
 
-Every debugging session is a hypothesis test, not a narrative. The hierarchy of causes is not decoration: schema mismatch accounts for most failures, and every minute spent theorizing about logic errors before verifying field names is wasted. Get the data first. Compare it against what the code expects. The answer is almost always right there.
+Every debugging session is a hypothesis test, not a narrative. The hierarchy of causes is not decoration: schema mismatch accounts for most failures, and every minute spent theorizing about logic errors before verifying field names is wasted. Get the data first. Compare it against what the code expects. When the code is AI-generated, also check that the API being called actually exists in the version being used. The answer is almost always right there, one layer earlier than where the symptom appeared.
