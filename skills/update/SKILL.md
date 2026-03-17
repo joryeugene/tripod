@@ -1,10 +1,10 @@
 ---
-name: sync
+name: update
 description: Install or update claude-stack and sync the plugin cache. Use when the user says "sync claude-stack", "update claude-stack", "install claude-stack", or "set up claude-stack".
 user-invocable: true
 ---
 
-# claude-stack Sync
+# claude-stack Update
 
 Install claude-stack from scratch or bring an existing installation up to date. Walk through each step, verifying as you go.
 
@@ -45,7 +45,7 @@ claude plugin marketplace add joryeugene/claude-stack
 claude plugin install claude-stack
 ```
 
-Then re-run `/sync` after those commands complete.
+Then re-run `/update` after those commands complete.
 
 ## Step 2: Update
 

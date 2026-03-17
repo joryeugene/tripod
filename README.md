@@ -54,10 +54,10 @@ claude plugin install claude-stack
 Verify it worked. The CLI is silent on both success and failure, so confirm from within a new Claude Code session:
 
 ```
-/sync
+/update
 ```
 
-The `/sync` skill runs a health check: marketplace registration, plugin installation, skill count, hook count. If it reports issues, it prints the fix commands.
+The `/update` skill runs a health check: marketplace registration, plugin installation, skill count, hook count. If it reports issues, it prints the fix commands.
 
 Alternatively, if you have the repo cloned:
 
@@ -186,7 +186,7 @@ source ~/.local/bin/mcp-use
 
   maintenance
 
-   /sync                  install, update, or sync claude-stack
+   /update                  install, update, or sync claude-stack
 ```
 
 ---
@@ -230,7 +230,7 @@ Each skill owns one moment in the workflow. Invoke with `/skill-name` in Claude 
 | `/visual-verify` | After UI changes. Element-level proof before declaring done. |
 | `/browser-testing` | Deep browser testing with gstack. Network, console, forms, multi-tab, authenticated API calls. |
 | `/ship-pipeline` | Ready to ship. Pre-flight review, merge, test, commit, push, PR. |
-| `/sync` | Install, update, or sync claude-stack. Dev path runs `./sync`; user path runs `claude plugin install`. |
+| `/update` | Install, update, or sync claude-stack. Dev path runs `./update`; user path runs `claude plugin install`. |
 
 ---
 
