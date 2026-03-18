@@ -1,4 +1,4 @@
-# claude-stack  v1.0
+# claude-stack  v1.1.0
 
 ```
  ▐▛███▜▌   skills/       workflow     on demand

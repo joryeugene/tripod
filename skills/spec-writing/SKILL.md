@@ -75,6 +75,22 @@ No code until all seven sections are complete. If a section cannot be written, t
 
 ---
 
+## Progressive Rigor
+
+Not every spec needs the same depth. Match rigor to risk.
+
+**Routine change** (local, low-risk, single-system): concise seven sections, no additional ceremony. The gate still applies; the sections can be brief.
+
+**High-risk change** (cross-boundary, API-breaking, security-sensitive, data migration, multi-team impact): add to each relevant section:
+- From: the current state or behavior
+- To: the future state or behavior
+- Reason: why the change is necessary
+- Impact: breaking or non-breaking, who is affected, what needs to migrate
+
+The distinction matters before writing section 1. A high-risk spec that looks like a routine spec will pass the gate and still produce surprises.
+
+---
+
 ## Artifact
 
 After completing all seven sections, write the spec to disk:
@@ -86,6 +102,8 @@ docs/specs/YYYY-MM-DD-<name>.md
 Where `<name>` is 2-4 words in kebab-case derived from the feature being specced (e.g., `user-auth-redesign`, `payment-webhook-handler`). If the name is not clear from context, use `untitled`.
 
 Use the Write tool to create `docs/specs/YYYY-MM-DD-<name>.md` with the full spec content. Print the path after writing: `Saved: docs/specs/YYYY-MM-DD-<name>.md`
+
+After implementation, update the spec to reflect what was actually built. If execution diverged from the spec, record why in the Trade-off Log before the spec is considered final. A spec that is never updated after shipping is documentation of intent, not reality.
 
 ---
 

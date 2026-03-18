@@ -36,7 +36,7 @@ Ask the user which posture to take:
    - What would make a user say "I can't go back to the old way"?
    - What would a competitor copy within 6 months if they saw this?
 
-3. **Challenge premises.** For each major decision in the plan:
+3. **Challenge premises.** The posture is adversarial, not constructive. Look for reasons this spec is wrong before looking for ways to make it better. For each major decision in the plan:
    - "Is this the right abstraction, or is it a familiar one?"
    - "What would we build if we had no existing code?"
    - "What will we regret not building in 6 months?"
@@ -123,7 +123,7 @@ You are the best technical lead on the team. Product direction is decided. Your 
    - Data flow diagram (for anything that transforms data)
    Use Mermaid syntax in markdown.
 
-4. **Failure mode analysis.** For each operation:
+4. **Failure mode analysis.** Ask "how could this break?" before asking "does this look right?" Failure modes found in review cost nothing; failure modes found in production cost everything. For each operation:
    - What happens if it times out?
    - What happens if it partially succeeds?
    - What happens if it runs twice?
