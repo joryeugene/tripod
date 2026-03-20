@@ -71,43 +71,78 @@ The CLI does not expose sections. Use the Asana REST API directly for kanban col
 Base URL: `https://app.asana.com/api/1.0`
 Auth header: `-H "Authorization: Bearer $ASANA_ACCESS_TOKEN"`
 
+### Critical: curl flags
+
+**Always use `-d` for POST bodies, never `--data-raw`.**
+`--data-raw` causes silent 401 errors on POST /stories even when auth is valid.
+
+**Always check HTTP status, not response body:**
+```bash
+curl -s -o /dev/null -w "%{http_code}" -X POST ...
+```
+
+**Never pipe curl directly to jq without checking for empty output:**
+```bash
+# BAD - fails silently when response is empty or an error
+curl -s ... | jq '.data[] | {gid, name}'
+
+# GOOD - capture first, then parse
+RESP=$(curl -s ...)
+echo "$RESP" | grep -o '"gid":"[0-9]*"' | head -1
+```
+
+**Run each curl call on its own line.** For loops across multiple curl calls fail in the eval context.
+
 ### Find the GID for anything
 
-Every Asana URL contains the GID. From `app.asana.com/0/PROJECT_GID/TASK_GID`,
-the long numeric IDs are the GIDs.
+Asana URLs use this format: `app.asana.com/1/WORKSPACE_GID/project/PROJECT_GID/task/TASK_GID`
+
+The long numeric IDs are the GIDs. Extract them directly from URLs.
 
 ### List sections (columns) in a project
 ```bash
 curl -s \
   -H "Authorization: Bearer $ASANA_ACCESS_TOKEN" \
   "https://app.asana.com/api/1.0/projects/PROJECT_GID/sections" \
-  | jq '.data[] | {gid, name}'
+  2>&1
 ```
 
 ### Move task to a section (kanban column move)
 ```bash
-curl -s -X POST \
+curl -s -o /dev/null -w "%{http_code}" -X POST \
   -H "Authorization: Bearer $ASANA_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"data": {"task": "TASK_GID"}}' \
   "https://app.asana.com/api/1.0/sections/SECTION_GID/addTask"
+# Expect 200
 ```
 
 ### Add a comment to a task
 ```bash
-curl -s -X POST \
+curl -s -o /dev/null -w "%{http_code}" -X POST \
   -H "Authorization: Bearer $ASANA_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"data": {"text": "Your comment here"}}' \
   "https://app.asana.com/api/1.0/tasks/TASK_GID/stories"
+# Expect 201. Note: GET /stories returns 401 on some projects even when POST works.
 ```
 
 ### Get full task detail
 ```bash
 curl -s \
   -H "Authorization: Bearer $ASANA_ACCESS_TOKEN" \
-  "https://app.asana.com/api/1.0/tasks/TASK_GID" \
-  | jq '.data | {gid, name, completed, assignee, due_on, memberships}'
+  "https://app.asana.com/api/1.0/tasks/TASK_GID?opt_fields=gid,name,completed,assignee,due_on,memberships.section.name" \
+  2>&1
+```
+
+### Create a task via REST API
+```bash
+curl -s -X POST \
+  -H "Authorization: Bearer $ASANA_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"data": {"name": "Task name", "notes": "Description", "projects": ["PROJECT_GID"], "assignee": "USER_GID"}}' \
+  "https://app.asana.com/api/1.0/tasks" \
+  2>&1 | grep -o '"gid":"[0-9]*"' | head -1
 ```
 
 ### Search tasks in a workspace
@@ -115,7 +150,7 @@ curl -s \
 curl -s \
   -H "Authorization: Bearer $ASANA_ACCESS_TOKEN" \
   "https://app.asana.com/api/1.0/workspaces/WORKSPACE_GID/tasks/search?text=keyword&opt_fields=gid,name,completed" \
-  | jq '.data[] | {gid, name, completed}'
+  2>&1
 ```
 
 ### Get workspace GID
@@ -123,15 +158,21 @@ curl -s \
 curl -s \
   -H "Authorization: Bearer $ASANA_ACCESS_TOKEN" \
   "https://app.asana.com/api/1.0/workspaces" \
-  | jq '.data[] | {gid, name}'
+  2>&1
+```
+
+### Get current user GID
+```bash
+curl -s \
+  -H "Authorization: Bearer $ASANA_ACCESS_TOKEN" \
+  "https://app.asana.com/api/1.0/users/me" \
+  2>&1 | grep -o '"gid":"[^"]*"' | head -1
 ```
 
 ---
 
 ## GID Lookup Pattern
 
-When you have a task URL like `app.asana.com/0/1234567890123456/9876543210987654`:
-- Project GID: `1234567890123456`
-- Task GID: `9876543210987654`
+Asana URL format: `app.asana.com/1/WORKSPACE_GID/project/PROJECT_GID/task/TASK_GID`
 
 Extract GIDs from any Asana URL before making API calls. Never guess numeric IDs.
