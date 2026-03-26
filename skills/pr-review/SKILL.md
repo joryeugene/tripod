@@ -1,22 +1,119 @@
 ---
 name: pr-review
-description: Use when receiving PR feedback or when requesting a code review before merge. Covers both directions: responding to reviewer comments and dispatching a review subagent.
+description: Use when reviewing a PR or responding to review comments on your own PR. Detects authorship automatically and runs the correct mode. Never makes code changes when reviewing someone else's work.
 user-invocable: true
 ---
 
 # Code Review
 
-Two modes. Invoke with `/pr-review receiving` or `/pr-review requesting`. If no argument, ask which mode.
+Two modes determined by identity. The skill detects which mode applies automatically.
+
+Invoke with `/pr-review <pr-url-or-number>`. If no argument, ask for the PR.
 
 ---
 
-## Receiving Reviews
+## Step 0: Detect Identity
 
-When a reviewer (human or AI) provides feedback on your code.
+Before anything else, determine who you are and who authored the PR.
 
-### Read Everything First
+```bash
+gh api user -q .login
+gh pr view <number> --json author -q .author.login
+```
 
-Read all comments before responding to any of them. Understand the full picture before acting on a single item.
+If your username matches the PR author: you are the **author**. Run **Responding to Reviews**.
+
+If your username does not match: you are a **reviewer**. Run **Reviewing a PR**.
+
+This determines everything. Reviewers do not make code changes. Authors do not submit reviews on their own PR.
+
+---
+
+## Reviewing a PR (you are NOT the author)
+
+Your job is to review the code, submit a GitHub review, and leave inline comments. You do not touch the code. You do not make changes. You submit feedback.
+
+### 1. Read the full diff
+
+```bash
+gh pr diff <number>
+```
+
+Read the entire diff before writing any comments. Understand the full scope of changes.
+
+### 2. Read project conventions
+
+Read CLAUDE.md and any relevant project docs. Flag violations of documented conventions, not personal preferences.
+
+### 3. Evaluate
+
+Review for:
+- **Correctness**: does the code do what it claims?
+- **Contracts**: are function promises maintained? Do return types match?
+- **Edge cases**: what inputs or states could break this?
+- **Consistency**: does this follow existing patterns in the codebase?
+- **Security**: does this introduce any OWASP top 10 vulnerabilities?
+
+For each finding, classify:
+
+| Level | Meaning | Blocking? |
+|-------|---------|-----------|
+| **CRITICAL** | Bug, security issue, data loss risk | Yes |
+| **WARNING** | Correctness concern, missing edge case | Author's judgment |
+| **NOTE** | Style, naming, minor improvement | No |
+
+If the code is clean, say so. Do not manufacture issues to appear thorough.
+
+### 4. Submit the review on GitHub
+
+If there are inline comments (preferred when findings are code-specific):
+
+```bash
+# Start a review with inline comments
+gh api repos/{owner}/{repo}/pulls/{number}/reviews -X POST -f body="Review summary" -f event="<EVENT>" -f comments='[{"path":"src/file.py","line":42,"body":"Comment text"}]'
+```
+
+If there are no line-specific findings, submit a plain review:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{number}/reviews -X POST -f body="Review summary" -f event="<EVENT>"
+```
+
+Where `<EVENT>` is one of:
+- `APPROVE` when all findings are NOTE-level or no findings at all
+- `REQUEST_CHANGES` when any CRITICAL finding exists
+- `COMMENT` when findings exist but none are blocking
+
+Inline comments are preferred over a single summary comment whenever findings reference specific lines. Reviewers reading the PR see inline comments in context.
+
+### What you do NOT do as a reviewer
+
+- Do not check out the branch.
+- Do not edit any files.
+- Do not push commits.
+- Do not resolve your own comments.
+- You read, you evaluate, you submit feedback. That is the scope.
+
+---
+
+## Responding to Reviews (you ARE the author)
+
+Someone reviewed your PR. Your job is to understand the feedback, then either fix the code or push back with evidence.
+
+### 1. Read all comments first
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{number}/reviews
+gh api repos/{owner}/{repo}/pulls/{number}/comments
+```
+
+Read every comment before responding to any of them. Understand the full picture before acting.
+
+### 2. Restate each comment
+
+For each piece of feedback, restate it in your own words before implementing anything. "The reviewer identified that X causes Y because Z. The fix is to change A to B."
+
+If you cannot restate it, you do not understand it. Ask for clarification.
 
 ### Forbidden Responses
 
@@ -29,76 +126,49 @@ These phrases are performative, not productive. They signal compliance without c
 | "Good point, I'll fix that." | Skips the comprehension step. |
 | "Thanks for the thorough review!" | Filler. |
 
-Instead: restate the feedback in your own words. "The reviewer identified that X causes Y because Z. The fix is to change A to B." If you cannot restate it, you do not understand it.
+### 3. YAGNI check
 
-### YAGNI Check
-
-Before implementing any reviewer suggestion that adds new functionality:
+Before implementing any suggestion that adds new functionality:
 
 1. Grep the codebase for actual usage of the pattern being suggested.
 2. If no current caller exists, the suggestion is speculative. Push back with evidence: "Grepped for X, found 0 callers. Adding this would be speculative."
 3. If callers exist, proceed.
 
-### Implementation Protocol
+### 4. Implement or push back
 
-1. Implement one review item at a time.
-2. Run tests after each item.
-3. If a suggestion conflicts with project conventions (CLAUDE.md, existing patterns), push back with the specific convention and file path.
-4. Technical disagreement is not insubordination. State the tradeoff, cite the evidence, and let the reviewer decide.
+For each comment, do one of:
 
-### When to Push Back
+**Implement:** Fix the code. One comment at a time. Run tests after each fix.
 
-Push back when:
+**Push back:** State the evidence, not an opinion.
+- "This conflicts with the pattern in src/utils.py:42 where we chose X because Y."
+- "Grepped for callers, found 0. This would be speculative."
+- "Benchmark shows the suggested approach is 3x slower: [output]."
+
+Technical disagreement is not insubordination. State the tradeoff, cite the evidence, and let the reviewer decide.
+
+### 5. Reply to comments
+
+After implementing or deciding to push back, reply to each comment on GitHub:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/comments/{comment_id}/replies -X POST -f body="Reply text"
+```
+
+The `-X POST` flag is required for replies. Without it the call returns 404.
+
+### When to push back
+
 - The suggestion adds complexity without a current caller (YAGNI).
 - The suggestion conflicts with documented project conventions.
 - The suggestion introduces a pattern inconsistent with the existing codebase.
 - You have evidence (benchmark, test, trace) that the suggestion degrades behavior.
 
-Push back by stating the evidence, not by arguing. "This conflicts with the pattern in src/utils.py:42 where we chose X because Y" is pushback. "I disagree" is not.
-
 ---
 
-## Requesting Reviews
+## Two-Stage Review (for critical changes)
 
-When you want your code reviewed before merge.
-
-### Dispatch a Review Subagent
-
-Spawn a fresh subagent with no shared context. The reviewer must form its own understanding.
-
-```
-Task {
-  subagent_type: "general-purpose",
-  prompt: "You are a code reviewer. Review the changes between <base_sha> and <head_sha>.
-
-  Run: git diff <base_sha>...<head_sha>
-
-  Review for:
-  1. Correctness: does the code do what it claims?
-  2. Contracts: are function promises maintained?
-  3. Edge cases: what inputs break this?
-  4. Consistency: does this match existing patterns in the codebase?
-
-  Read CLAUDE.md for project conventions. Flag any violations.
-
-  Output format:
-  - CRITICAL: must fix before merge
-  - WARNING: should fix, not blocking
-  - NOTE: style or preference, non-blocking
-
-  If everything looks clean, say so. Do not manufacture issues."
-}
-```
-
-### When to Request Review
-
-- After completing a major feature or significant refactor.
-- Before merging to main.
-- After fixing a bug where the root cause was subtle.
-
-### Two-Stage Review
-
-For critical changes, run two review passes:
+When reviewing a large or high-risk PR, run two separate passes:
 
 1. **Spec compliance**: does the implementation match the spec or requirements? Check every acceptance criterion.
 2. **Code quality**: correctness, edge cases, patterns, conventions.
@@ -109,12 +179,14 @@ A fresh subagent for each stage prevents the first review's framing from biasing
 
 ## Anti-Patterns
 
+- Making code changes when you are the reviewer. Reviewers submit feedback. Authors make changes.
 - Performative agreement with reviewer feedback. Restate in your own words or you have not understood it.
 - Implementing all suggestions without evaluating each one. Reviews contain both essential fixes and speculative improvements. Distinguish them.
 - Skipping the YAGNI check. "The reviewer said to add it" is not evidence that callers exist.
-- Reviewing your own code in the same context window. A fresh subagent catches what familiarity hides.
+- Posting a single summary comment when inline comments would place feedback in context.
 - Manufacturing review issues to appear thorough. If the code is clean, say so.
+- Reviewing your own code in the same context window. A fresh subagent catches what familiarity hides.
 
 ## The Floor
 
-Code review is a verification step, not a performance. The reviewer's job is to find what the author missed. The author's job is to understand the feedback, not to agree with it. Performative responses waste both sides' time. Restate, evaluate, implement or push back. That is the entire protocol.
+Identity determines behavior. Reviewers read, evaluate, and submit feedback on GitHub. Authors read feedback, understand it, and either fix the code or push back with evidence. The skill detects which role applies and enforces the boundary. A reviewer who makes code changes has overstepped. An author who submits a review on their own PR has confused the roles.
