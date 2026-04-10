@@ -130,7 +130,9 @@ This passes if the real code is deleted. It configures a mock to return X, then 
 
 ---
 
-## Rationalization Red Flags
+## When You'll Skip This
+
+### The Rationalization
 
 These thoughts mean you are about to skip the discipline. Recognize them and stop.
 

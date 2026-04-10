@@ -96,6 +96,16 @@ Common failure: executor completed all tasks, wrote a summary, but the feature i
 Say explicitly: "I cannot verify this works because [reason]. Please verify by running [command]."
 Never claim success without proof. Never use checkmarks without testing.
 
+## When You'll Skip This
+
+### The Rationalization
+
+"I wrote the code, I read it, it looks correct. Running it is CI's job."
+
+### The Cost
+
+"Looks correct" is an unverified claim. Field names are wrong on the first pass 80% of the time. The next engineer to touch this code inherits a system whose behavior was assumed but never observed. A bug found during verification costs one conversation. A bug found in production costs a postmortem.
+
 ## Anti-Patterns
 
 - **Batch verification:** Making 5 changes then testing all at once. When something breaks, you don't know which change caused it.

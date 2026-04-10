@@ -201,6 +201,18 @@ When the plan is approved and has multiple tasks:
 2. Checkpoint between groups: verify each completed task before starting the next batch.
 3. If any task in a group fails verification, stop the batch and fix before continuing.
 
+## When You'll Skip This
+
+### The Rationalization
+
+"This is well-scoped. I know exactly what needs to change. Running plan-mode is ceremony for a task that doesn't need ceremony."
+
+### The Cost
+
+The weight class system exists because "I know what to do" has a 100% failure rate as a skip condition under time pressure. The most expensive software mistakes are not implementation errors; they are correct implementations of the wrong design. CEO mode catches problems at zero code cost. Eng mode catches architectural surprises at zero debugging cost. Skipping either to save thirty minutes buys a problem that costs days.
+
+---
+
 ## Anti-Patterns
 
 - Rubber-stamping plans. The point of CEO mode is to challenge them, not approve them.
