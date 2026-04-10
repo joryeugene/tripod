@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Use when writing any tests or implementing any feature. Write the failing test first. Never write implementation before a failing test exists.
+description: Use when writing any tests or implementing any feature. The failing test must exist before any implementation begins. Also use for characterization tests before refactoring.
 ---
 
 # Test-Driven Development
@@ -127,6 +127,18 @@ assert result.charge_id == "ch_123"  # circular: tests the mock, not the code
 ```
 
 This passes if the real code is deleted. It configures a mock to return X, then asserts the result is X. It tests nothing.
+
+### Contrastive Reasoning
+
+Two chains. One catches bugs. One tests nothing.
+
+**Wrong chain:** "I need to test `process_order`. I'll mock the payment service and assert it was called."
+
+Why it fails: The mock is configured to return `{"id": "ch_123"}`. The assertion checks that the result contains `ch_123`. If you delete `process_order` entirely, the test still passes because it only tests the mock configuration.
+
+**Right chain:** "What does `process_order` promise? It charges the card and creates a record. What breaks downstream if that promise fails? Order tracking and billing reconciliation. Assert those two things directly against real state."
+
+The test that follows: assert `result.status == "completed"`, assert `result.charge_id is not None`, assert the database record exists. Deleting `process_order` breaks all three assertions.
 
 ---
 

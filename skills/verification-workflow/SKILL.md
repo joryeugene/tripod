@@ -39,6 +39,16 @@ Encode the verified behavior as a permanent test with `/tdd` so the proof surviv
 - Every claim needs: API response + code reference + expected output
 - If you haven't seen it work, don't claim it works
 
+### Contrastive Example
+
+**Wrong:** "Added the API call, looks correct, moving on."
+
+Why it fails: field names are wrong on the first pass 80% of the time. This claim is unverified. The next engineer inherits a system whose behavior was assumed, never observed.
+
+**Right:** "Curled the endpoint. It returns `charge_id`, not `chargeId`. My code uses `charge_id` at line 42. Curl output: `{"charge_id": "ch_abc123", "status": "succeeded"}`. Field name matches. Passing."
+
+The distinction: one is a claim about code. The other is a claim about observed behavior with evidence attached.
+
 ## Per-Change-Type Verification
 
 Different changes require different proof. Generic "run tests" is not enough.

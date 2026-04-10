@@ -172,6 +172,9 @@ Search the codebase and your notes first. Consolidate, don't duplicate.
 **Need parallel agents on a task:**
 Claude Code Agent Teams: split file ownership, plan first, execute in parallel.
 
+**When reasoning through multi-step problems in visible output:**
+Sketch minimal intermediate steps (5-10 words each). Draft: identify constraint, name approach, show result. Not: "First we need to consider X, and then we should Y, because Z implies..."
+
 ---
 
 ## REFERENCE
@@ -223,3 +226,12 @@ Six standards for any prose contribution. All six required; no partial credit:
 6. **Trust the reader** - state truth, let it land, no hand-holding
 
 If any standard is "no" or "maybe" -> reject the proposed change.
+
+---
+
+## Core Reminder (The Tripod)
+
+All design decisions answer to three forces before any execution begins:
+- **Antifragile**: does stress make this stronger?
+- **Simple**: what am I complecting?
+- **Research First**: who solved this already?

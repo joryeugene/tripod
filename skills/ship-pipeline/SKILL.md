@@ -1,6 +1,6 @@
 ---
 name: ship-pipeline
-description: Use when ready to ship. Runs the full release pipeline: merge, test, pre-landing review, commit, push, PR. Includes pre-ship paranoid diff review.
+description: Run when all code changes are complete and ready to land. Executes the full merge+test+commit+push+PR pipeline. Do not run mid-feature.
 disable-model-invocation: true
 ---
 

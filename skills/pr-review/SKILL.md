@@ -86,6 +86,30 @@ Where `<EVENT>` is one of:
 
 Inline comments are preferred over a single summary comment whenever findings reference specific lines. Reviewers reading the PR see inline comments in context.
 
+### 5. Dispatch a review subagent (optional, for large PRs)
+
+Spawn a fresh subagent with no shared context. The reviewer must form its own understanding independently.
+
+```
+Agent {
+  subagent_type: "general-purpose",
+  prompt: "You are a code reviewer. Review PR #{number} in {owner}/{repo}.
+
+  Run: gh pr diff {number} --repo {owner}/{repo}
+  Read: gh pr view {number} --repo {owner}/{repo} --json body,title,files
+
+  For each finding, report:
+  - File path and line number
+  - Severity: CRITICAL / WARNING / NOTE
+  - What is wrong and why
+
+  Read CLAUDE.md for project conventions. Flag violations.
+  If everything looks clean, say so."
+}
+```
+
+After the subagent returns findings, post them as inline review comments using the GraphQL pattern in step 4. Do not relay findings as a text summary to the user.
+
 ### What you do NOT do as a reviewer
 
 - Do not check out the branch.
@@ -147,15 +171,83 @@ For each comment, do one of:
 
 Technical disagreement is not insubordination. State the tradeoff, cite the evidence, and let the reviewer decide.
 
-### 5. Reply to comments
+### 5. Reply inline to comment threads
 
-After implementing or deciding to push back, reply to each comment on GitHub:
+Always reply in the specific thread, not as a standalone PR comment.
+
+**Get the thread IDs first:**
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/comments/{comment_id}/replies -X POST -f body="Reply text"
+gh api graphql -f query='{
+  repository(owner: "OWNER", name: "REPO") {
+    pullRequest(number: PR_NUMBER) {
+      reviewThreads(last: 20) {
+        nodes {
+          id
+          isResolved
+          comments(first: 1) {
+            nodes { id databaseId body author { login } }
+          }
+        }
+      }
+    }
+  }
+}'
 ```
 
-The `-X POST` flag is required for replies. Without it the call returns 404.
+**Reply inline to a thread** (use the `id` field starting with `PRRT_`):
+
+```bash
+gh api graphql -f query='mutation {
+  addPullRequestReviewThreadReply(input: {
+    pullRequestReviewThreadId: "PRRT_xxx",
+    body: "Your reply here."
+  }) {
+    comment { id }
+  }
+}'
+```
+
+This posts the reply directly in the inline comment thread. The REST endpoint `pulls/comments/{id}/replies` returns 404 for review thread comments - always use GraphQL for inline replies.
+
+**Reply style:** One or two sentences. State the fact and the fix.
+
+Good: "Fixed. Radix dropdown adds overflow:hidden to body, removing the scrollbar. `modal={false}` disables this."
+
+Bad: "Yes, great observation! You're right that this is important. I've looked into this and the reason we added `modal={false}` is because Radix UI DropdownMenu by default sets `modal={true}` which causes the body element to have overflow:hidden applied..." (verbose, performative)
+
+### 6. Dismiss bot reviews after addressing
+
+When a bot (claude[bot], copilot) requests changes and you have addressed them, dismiss the review so it does not block merge.
+
+```bash
+# Find the review ID
+gh api graphql -f query='{
+  repository(owner: "OWNER", name: "REPO") {
+    pullRequest(number: PR_NUMBER) {
+      reviews(last: 10) {
+        nodes { id author { login } state }
+      }
+    }
+  }
+}'
+
+# Dismiss the CHANGES_REQUESTED review
+gh api graphql -f query='mutation {
+  dismissPullRequestReview(input: {
+    pullRequestReviewId: "PRR_xxx",
+    message: "All issues addressed in follow-up commit."
+  }) {
+    pullRequestReview { state }
+  }
+}'
+```
+
+### 7. Re-request reviews after pushing fixes
+
+```bash
+gh pr edit {PR_NUMBER} --add-reviewer {username}
+```
 
 ### When to push back
 

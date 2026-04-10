@@ -1,4 +1,4 @@
-# tripod  v1.1.0
+# tripod  v1.2.0
 
 <img src="totem-v2.svg" alt="tripod totem" />
 
@@ -248,6 +248,7 @@ Each skill owns one moment in the workflow. Invoke with `/skill-name` in Claude 
 |-------|----------------------|
 | `/agent-principles` | Always active. The quality contract: evidence-first, no hedging. |
 | `/agent-orchestration` | You have 2+ independent tasks that can run in parallel. |
+| `/deep-research-session` | User gives sustained time: "we have 3 hours", "all night", "go deep". Clock discipline, tier structure, pivot protocol. Do not stop early. |
 | `/spec-writing` | First. Explore mode for brainstorming and research; structured mode for the 7-section spec. Required before plan-mode. |
 | `/plan-mode` | After spec-writing. Auto-selects weight class: skip (task-mode specs), eng-only (routine), or CEO+eng (high-risk). |
 | `/tdd` | Writing any feature or test. Failing test first, always. |

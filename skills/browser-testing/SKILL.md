@@ -307,6 +307,34 @@ Checking the DOM directly is more reliable than reading JS state variables, whic
 
 ---
 
+## Binary/Bundle Staleness
+
+When an app bundles its frontend (Python serving inline JS, Electron, packaged CLI), the running binary may NOT match the source. A bug visible in the browser may already be fixed in source. The binary is a snapshot from the last build.
+
+Before concluding a bug is unfixed: rebuild the binary and retest.
+
+```bash
+# Python CLI example
+uv tool install --force --reinstall .
+# Then restart the server and retest
+```
+
+If the bug disappears after rebuild without any source changes, the bug was in the stale binary, not the source. The fix was the rebuild.
+
+---
+
+## Bugs That Only Surface Through Real Interaction
+
+These patterns are invisible to unit tests and only appear via browser testing:
+
+**Broken promise chain:** `fetchData()` called without `return` in a `.then()` chain. The next `.then()` fires before the fetch resolves. The UI appears to work (no error) but shows stale data. Fix: always `return fetchData()`.
+
+**Off-by-one index:** An operation always targets index 0 instead of the item the user navigated to. Passes in demos where index 0 is always selected, fails in real use when any other item is focused.
+
+**Double-remove on detached DOM nodes:** Two code paths can remove the same element. The second call throws `NotFoundError`. Guard with `if (inp.parentNode) inp.remove()`. This is idempotent: attached nodes remove, detached nodes do nothing.
+
+---
+
 ## What NOT to Do
 
 - Do not screenshot and call it verified. Screenshots are evidence only for layout bugs.
