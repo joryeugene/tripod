@@ -1,4 +1,4 @@
-# tripod  v1.2.0
+# tripod  v1.2.1
 
 <img src="totem-v2.svg" alt="tripod totem" />
 
