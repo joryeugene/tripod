@@ -324,6 +324,29 @@ Two ways to apply: source `env.sh.example` from your shell profile, or copy the 
 
 ---
 
+## Local development
+
+Clone the repo, make changes to skills or hooks, then sync to the plugin cache:
+
+```bash
+git clone https://github.com/joryeugene/tripod.git
+cd tripod
+./sync
+```
+
+`./sync` does four things in order:
+
+1. **Version bump** — reads the latest git tag; if it differs from `plugin.json`, updates both metadata files.
+2. **Cache migration** — if the installed version is older, copies the cache to a new versioned directory and updates `installed_plugins.json`.
+3. **Content sync** — rsyncs skills, hooks, CLAUDE.md, and all other plugin assets to the active cache path. Also cleans up any orphaned version directories left by previous installs.
+4. **Marketplace snapshot sync** — updates `~/.claude/plugins/marketplaces/tripod/` with the current repo content. Claude Code reads this snapshot on startup to determine the available version; keeping it current prevents stale versions from being recreated in the cache.
+
+Start a new Claude Code session after `./sync` to pick up the changes.
+
+`./verify` runs a health check without making any changes: marketplace registration, plugin install, version alignment, skill and hook counts.
+
+---
+
 ## Adding your own hooks
 
 1. Write a Python script that reads tool input from stdin (JSON)
