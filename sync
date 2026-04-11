@@ -132,6 +132,39 @@ for meta in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
   fi
 done
 
+# ── Step 4: Sync to marketplace snapshot ─────────────────────────────────────
+# The marketplace location (~/.claude/plugins/marketplaces/tripod/) is a local
+# snapshot Claude Code reads on every startup to determine the "available" version.
+# If this snapshot is stale (e.g. version 1.0.0), Claude Code materializes the old
+# version directory in the cache on every session start. Keeping it current prevents
+# orphaned cache directories from being recreated.
+
+MARKETPLACE_KEY="tripod"
+MARKETPLACES_FILE="$HOME/.claude/plugins/known_marketplaces.json"
+
+marketplace_location=$(python3 -c "
+import json, sys
+data = json.load(open('$MARKETPLACES_FILE'))
+entry = data.get('$MARKETPLACE_KEY')
+if entry:
+    print(entry['installLocation'])
+" 2>/dev/null)
+
+if [[ -n "$marketplace_location" && -d "$marketplace_location" ]]; then
+  for item in skills hooks browse CLAUDE.md README.md setup verify statusline.sh scripts mcp-presets settings.json.example env.sh.example .claude-plugin; do
+    src="$REPO_DIR/$item"
+    dst="$marketplace_location/$item"
+    if [[ -e "$src" ]]; then
+      if [[ -d "$src" ]]; then
+        rsync -a --delete --exclude='node_modules' --exclude='bun.lock' "$src/" "$dst/"
+      else
+        cp "$src" "$dst"
+      fi
+    fi
+  done
+  echo "  marketplace snapshot synced ($marketplace_location)"
+fi
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 
 skill_count=$(ls "$install_path/skills/" 2>/dev/null | wc -l | tr -d ' ')
