@@ -111,6 +111,16 @@ for item in skills hooks browse CLAUDE.md README.md setup verify statusline.sh s
   fi
 done
 
+# Clean up orphaned version directories
+cache_parent="${install_path%/*}"
+for old_dir in "$cache_parent"/*/; do
+  old_ver=$(basename "$old_dir")
+  if [[ "$old_ver" != "$plugin_version" && -d "$old_dir" ]]; then
+    rm -rf "$old_dir"
+    echo "  cleaned: $old_ver (orphaned)"
+  fi
+done
+
 # Also sync plugin metadata to cache root and .claude-plugin/ subdir
 # Claude Code reads .claude-plugin/plugin.json for the skill namespace (command prefix)
 for meta in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
