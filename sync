@@ -43,6 +43,9 @@ if [[ -z "$plugin_version" ]]; then
   plugin_version=$(python3 -c "import json; print(json.load(open('$REPO_DIR/.claude-plugin/plugin.json'))['version'])")
 fi
 
+# Current HEAD SHA for installed_plugins.json metadata
+git_sha=$(git -C "$REPO_DIR" rev-parse HEAD 2>/dev/null || echo "")
+
 # ── Check plugin is installed ─────────────────────────────────────────────────
 
 if [[ ! -f "$INSTALLED_FILE" ]]; then
@@ -76,13 +79,17 @@ if [[ "$cached_version" != "$plugin_version" ]]; then
   mkdir -p "$new_path"
   rsync -a "$install_path/" "$new_path/"
 
-  python3 - "$INSTALLED_FILE" "$PLUGIN_KEY" "$cached_version" "$plugin_version" <<'PYEOF'
+  python3 - "$INSTALLED_FILE" "$PLUGIN_KEY" "$cached_version" "$plugin_version" "$git_sha" <<'PYEOF'
 import json, os, sys
-f, key, old_ver, new_ver = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+from datetime import datetime, timezone
+f, key, old_ver, new_ver, sha = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
 data = json.load(open(f))
+now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
 for e in data['plugins'][key]:
     e['installPath'] = e['installPath'].replace(old_ver, new_ver)
     e['version'] = new_ver
+    e['gitCommitSha'] = sha
+    e['lastUpdated'] = now
 tmp = f + '.tmp'
 with open(tmp, 'w') as fh:
     json.dump(data, fh, indent=2)
@@ -93,6 +100,26 @@ PYEOF
   rm -rf "$install_path"
   echo "  cache:   $cached_version -> $plugin_version"
   install_path="$new_path"
+else
+  # Version unchanged: still refresh SHA and lastUpdated so Claude Code's
+  # update checker sees a consistent state and does not try to migrate.
+  if [[ -n "$git_sha" ]]; then
+    python3 - "$INSTALLED_FILE" "$PLUGIN_KEY" "$git_sha" <<'PYEOF'
+import json, os, sys
+from datetime import datetime, timezone
+f, key, sha = sys.argv[1], sys.argv[2], sys.argv[3]
+data = json.load(open(f))
+now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+for e in data['plugins'][key]:
+    e['gitCommitSha'] = sha
+    e['lastUpdated'] = now
+tmp = f + '.tmp'
+with open(tmp, 'w') as fh:
+    json.dump(data, fh, indent=2)
+    fh.write('\n')
+os.replace(tmp, f)
+PYEOF
+  fi
 fi
 
 # ── Step 3: Sync repo contents to plugin cache ────────────────────────────────
