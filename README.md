@@ -1,4 +1,4 @@
-# tripod  v1.2.3
+# tripod  v1.2.5
 
 <img src="totem-v2.svg" alt="tripod totem" />
 
@@ -262,7 +262,7 @@ Each skill owns one moment in the workflow. Invoke with `/skill-name` in Claude 
 | `/visual-design` | Starting UI work. Visual identity: color, typography, spacing, the AI slop test. |
 | `/interaction-design` | Before shipping UI behavior or auditing for compliance. Audience dimensions, discoverability, modes, feedback, WCAG 2.1 AA. |
 | `/visual-verify` | After UI changes. Element-level proof before declaring done. |
-| `/browser-testing` | Deep browser testing. MCP tools (Playwright, Chrome DevTools) and the browse CLI for persistent daemon testing. |
+| `/browser-testing` | Deep browser testing. Network, console, forms, multi-tab. Adversarial protocol: error-first, cancel, sequence corruption. |
 | `/figma-api` | Extract design specs, node properties, or export images from a Figma URL via the REST API. |
 | `/asana` | Manage Asana tasks from the terminal. CLI for common operations, REST API for kanban section moves, MCP mode for conversational access. |
 | `/ship-pipeline` | Ready to ship. Pre-flight review, merge, test, commit, push, PR. |
@@ -381,9 +381,7 @@ For custom skills outside this repo, create a second plugin directory and regist
 
 ## Browser automation
 
-Two approaches to browser testing. Both ship with tripod.
-
-**MCP presets** (zero build step): Playwright MCP for E2E automation and Chrome DevTools MCP for network/console inspection. Standard MCP tools that Claude calls natively.
+Playwright MCP for E2E automation and Chrome DevTools MCP for network and console inspection. Standard MCP tools that Claude calls natively. Zero build step.
 
 ```bash
 mcp-use browser              # playwright + chrome-devtools
@@ -391,15 +389,7 @@ mcp-use playwright           # automation only
 mcp-use chrome               # inspection only
 ```
 
-**browse CLI** (persistent daemon): a compiled binary that keeps Chromium running between calls. First call ~3s, subsequent calls 100-200ms. Accessibility tree refs (`@e1`, `@e2`) that fail fast on stale DOM. Cookie import from Chrome/Arc/Brave/Edge via macOS Keychain. 30-minute idle shutdown.
-
-```bash
-cd <tripod-repo>/browse && ./setup
-```
-
-Requires [bun](https://bun.sh) v1.0+. Based on [gstack](https://github.com/garrytan/gstack) by Garry Tan (MIT).
-
-The `/browser-testing` skill documents both approaches and helps you choose based on the task.
+The `/browser-testing` skill documents the adversarial testing protocol: error-first, cancel, sequence corruption, race conditions, and DOM evidence standards.
 
 ---
 

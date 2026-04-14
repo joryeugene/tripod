@@ -21,9 +21,9 @@ Always do this before testing anything:
 
 ```
 1. Navigate to the page
-2. browse console                  # MUST be empty of errors/warnings
-3. browse network                  # note which requests fired on load
-4. browse snapshot                 # baseline accessibility tree
+2. browser_console_messages        # MUST be empty of errors/warnings
+3. browser_network_requests        # note which requests fired on load
+4. browser_snapshot                # baseline accessibility tree
 ```
 
 If the console has errors on load, file them as bugs before testing anything else. Console errors on load are bugs regardless of whether the feature "works."
@@ -86,7 +86,7 @@ The first action succeeds. Now:
 Every meaningful browser interaction should be followed by:
 
 ```
-browse console
+browser_console_messages
 ```
 
 You are looking for:
@@ -107,7 +107,7 @@ The UI can lie. The network cannot.
 After any mutation (submit, approve, save, edit), verify:
 
 ```
-browse network
+browser_network_requests
 ```
 
 Check:
@@ -139,7 +139,7 @@ Common bug: tab stays on the last-visited tab, not the default. Form retains pre
 ```
 1. Perform action (approve, save, submit)
 2. Verify toast fires
-3. Verify the underlying list or count actually updated (browse js to read DOM, not screenshot)
+3. Verify the underlying list or count actually updated (browser_evaluate to read DOM, not screenshot)
 4. Reload the page
 5. Verify the change persisted
 ```
@@ -203,7 +203,7 @@ Common bug: second response overwrites first, showing wrong data for the current
 
 ```
 1. Find a disabled button
-2. browse js "document.querySelector('[disabled]').removeAttribute('disabled')"
+2. browser_evaluate "document.querySelector('[disabled]').removeAttribute('disabled')"
 3. Click the now-enabled button
 4. Verify: the server rejects the request via authorization, not just the UI guard
 ```
@@ -214,8 +214,8 @@ Common bug: second response overwrites first, showing wrong data for the current
 
 A test is complete only when you have all three:
 
-1. **DOM evidence:** `browse js "document.querySelector('.toast').textContent"` (not a screenshot)
-2. **Network evidence:** `browse network` shows the expected API call with the correct status
+1. **DOM evidence:** `browser_evaluate "document.querySelector('.toast').textContent"` (not a screenshot)
+2. **Network evidence:** `browser_network_requests` shows the expected API call with the correct status
 3. **Persistence evidence:** reload the page and verify the change is still there
 
 A screenshot alone is not evidence. A toast firing is not evidence. Evidence means the server accepted the mutation and the client reflects it correctly after a fresh load.
@@ -228,39 +228,11 @@ A screenshot alone is not evidence. A toast firing is not evidence. Evidence mea
 |-----------|------|
 | Logged-in session from real Chrome | Chrome DevTools MCP with `--autoConnect` |
 | Fresh session, form filling, E2E flows | Playwright MCP |
-| Fast iteration, many checks, element refs | browse CLI |
-
-**browse CLI** is preferred for adversarial testing:
-- 100ms per call vs seconds for MCP round-trips
-- `browse snapshot -D` shows exactly what changed (diff mode)
-- Element refs fail fast on stale DOM instead of hanging
-- `browse console` gives clean output
-
-**Setup:**
-```bash
-# browse CLI (persistent daemon)
-cd ${CLAUDE_PLUGIN_ROOT}/browse && ./setup
-# Binary: ${CLAUDE_PLUGIN_ROOT}/browse/dist/browse
-```
 
 For Chrome DevTools MCP with an authenticated session:
 1. Enable `chrome://inspect/#remote-debugging` in Chrome
 2. Add `--autoConnect` to the chrome-devtools entry in `.mcp.json`
 3. Restart the Claude Code session
-
----
-
-## Browse CLI Reference
-
-**Navigation:** `goto`, `back`, `forward`, `reload`, `url`
-
-**Reading:** `text`, `html`, `links`, `forms`, `snapshot`, `snapshot -D` (diff), `snapshot -s <selector>` (scoped)
-
-**Interaction:** `click [selector|@ref]`, `fill <selector|@ref> <text>`, `type <text>`, `press <key>`, `select <selector|@ref> <value>`, `hover`, `scroll [direction] [amount]`
-
-**Debugging:** `console`, `network`, `js <expr>`, `dialog`, `cookies`, `storage`, `css <selector>`, `attrs <selector>`
-
-**Visual:** `screenshot`, `screenshot --clip <selector>`, `responsive`
 
 ---
 
@@ -271,6 +243,8 @@ For Chrome DevTools MCP with an authenticated session:
 **Reading:** `browser_snapshot`, `browser_take_screenshot`, `browser_get_text`
 
 **Interaction:** `browser_click`, `browser_type`, `browser_select_option`, `browser_hover`, `browser_press_key`, `browser_drag`
+
+**Debugging:** `browser_console_messages`, `browser_network_requests`
 
 **Tabs:** `browser_tab_list`, `browser_tab_new`, `browser_tab_select`, `browser_tab_close`
 
@@ -297,7 +271,7 @@ document.dispatchEvent(new KeyboardEvent('keydown', {
 After mutations, wait before asserting. The DOM may not update synchronously:
 
 ```javascript
-// browse js:
+// browser_evaluate:
 new Promise(resolve => setTimeout(() => {
   resolve(document.querySelector('.stat-card .count')?.textContent)
 }, 500))

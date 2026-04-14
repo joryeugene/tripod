@@ -125,7 +125,7 @@ fi
 # ── Step 3: Sync repo contents to plugin cache ────────────────────────────────
 
 synced=0
-for item in skills hooks browse CLAUDE.md README.md setup verify statusline.sh scripts mcp-presets settings.json.example env.sh.example; do
+for item in skills hooks CLAUDE.md README.md setup verify statusline.sh scripts mcp-presets settings.json.example env.sh.example; do
   src="$REPO_DIR/$item"
   dst="$install_path/$item"
   if [[ -e "$src" ]]; then
@@ -135,6 +135,14 @@ for item in skills hooks browse CLAUDE.md README.md setup verify statusline.sh s
       cp "$src" "$dst"
     fi
     synced=$((synced + 1))
+  fi
+done
+
+# Remove retired directories that should no longer exist in the cache
+for retired in browse; do
+  if [[ -d "$install_path/$retired" ]]; then
+    rm -rf "$install_path/$retired"
+    echo "  removed: $retired (retired)"
   fi
 done
 
@@ -178,7 +186,7 @@ if entry:
 " 2>/dev/null)
 
 if [[ -n "$marketplace_location" && -d "$marketplace_location" ]]; then
-  for item in skills hooks browse CLAUDE.md README.md setup verify statusline.sh scripts mcp-presets settings.json.example env.sh.example .claude-plugin; do
+  for item in skills hooks CLAUDE.md README.md setup verify statusline.sh scripts mcp-presets settings.json.example env.sh.example .claude-plugin; do
     src="$REPO_DIR/$item"
     dst="$marketplace_location/$item"
     if [[ -e "$src" ]]; then
@@ -187,6 +195,12 @@ if [[ -n "$marketplace_location" && -d "$marketplace_location" ]]; then
       else
         cp "$src" "$dst"
       fi
+    fi
+  done
+  # Remove retired directories from marketplace snapshot
+  for retired in browse; do
+    if [[ -d "$marketplace_location/$retired" ]]; then
+      rm -rf "$marketplace_location/$retired"
     fi
   done
   echo "  marketplace snapshot synced ($marketplace_location)"

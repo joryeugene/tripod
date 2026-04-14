@@ -8,18 +8,17 @@ version: 0.4.0
 
 Element-level proof for every UI change. Full-page screenshots miss the bugs that matter.
 
-## With browse CLI
+## With Playwright MCP
 
-The `browse` command returns the accessibility tree with element refs (`@e1`, `@e2`). Use `screenshot --clip` to crop to a specific element, or `js` to inspect computed styles and bounding boxes.
+`browser_snapshot` returns the accessibility tree with element refs (`@e1`, `@e2`). Use `browser_take_screenshot` with an element ref to crop to that element, or `browser_evaluate` to inspect computed styles and bounding boxes.
 
 ### The standard verification loop
 
 ```
-1. goto <url>
-2. wait 2000                              # lets JS/fetch/SSE settle
-3. js "document.querySelector('.target').getBoundingClientRect()"   # get element coords
-4. snapshot -s ".target"                   # scoped snapshot of the component
-5. screenshot --clip ".target"             # element-level screenshot
+1. browser_navigate <url>
+2. browser_wait 2000                                    # lets JS/fetch/SSE settle
+3. browser_snapshot                                     # get element refs
+4. browser_take_screenshot (element: true, ref: @eN)    # element-level screenshot
 ```
 
 ### What to check in the screenshot
@@ -31,16 +30,10 @@ The `browse` command returns the accessibility tree with element refs (`@e1`, `@
 
 ### When you need a tighter crop
 
-The browse CLI returns viewport-level screenshots by default. For a 1px border or small component, use `--clip`:
-
-```
-screenshot --clip ".your-selector"
-```
-
-Or get the bounding box from JS and crop with ImageMagick:
+If the element ref approach does not produce a tight-enough crop, use `browser_evaluate` to get the bounding box and ImageMagick to crop:
 
 ```javascript
-// js command
+// browser_evaluate:
 document.querySelector('.your-selector').getBoundingClientRect()
 // returns: { x: 344, y: 227, width: 82, height: 19, ... }
 ```
@@ -57,11 +50,10 @@ Read `zoomed.png` to inspect at 3x zoom.
 When an element exists in the DOM but is not visible in the screenshot, inject a highlight before concluding it is broken:
 
 ```javascript
-// js command
+// browser_evaluate:
 const el = document.querySelector('.your-selector');
 el.style.background = 'red';
 el.style.border = '3px solid yellow';
-'highlighted'
 ```
 
 Then take a screenshot. If still not visible, the element is hidden by z-index, clipping, or display:none, not a screenshot artifact.

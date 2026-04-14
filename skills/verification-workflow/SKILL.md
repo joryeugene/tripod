@@ -78,7 +78,7 @@ After any change to keyboard handlers, overlays, or frontend JS:
 
 1. **Rebuild the binary** from source (not cached). The running binary is a snapshot.
 2. **Restart the server** and verify it responds.
-3. **Open the page in a real browser** (Chrome DevTools MCP or browse CLI).
+3. **Open the page in a real browser** (Chrome DevTools MCP or Playwright MCP).
 4. **Check console** for JS errors on load (clean baseline).
 5. **Press each key** with `press_key` (never `type_text` for shortcut testing).
 6. **Check console after each key press.** A ReferenceError means the handler references a non-existent JS identifier. No error and no DOM change means the key is not in the dispatch logic.
