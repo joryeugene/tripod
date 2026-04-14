@@ -57,7 +57,7 @@ Run the sync script from the repo directory:
 ./sync
 ```
 
-This copies skills, hooks, and config from the repo into the plugin cache. It also auto-bumps `plugin.json` and `marketplace.json` to match the latest git tag, and migrates the cache path if the version changed.
+This copies skills, hooks, and config from the repo into the plugin cache. It migrates the cache path if the version in `plugin.json` differs from the cached version.
 
 ### User path
 

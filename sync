@@ -5,43 +5,9 @@ REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 INSTALLED_FILE="$HOME/.claude/plugins/installed_plugins.json"
 PLUGIN_KEY="tripod@tripod"
 
-# ── Step 1: Auto-bump plugin version from latest git tag ──────────────────────
+# ── Step 1: Read plugin version from manifest ────────────────────────────────
 
-plugin_version=$(python3 - "$REPO_DIR" <<'PYEOF'
-import json, re, subprocess, sys, os
-
-repo_dir = sys.argv[1]
-
-pj = os.path.join(repo_dir, '.claude-plugin', 'plugin.json')
-current = json.loads(open(pj).read())['version']
-
-result = subprocess.run(
-    ['git', '-C', repo_dir, 'describe', '--tags', '--abbrev=0'],
-    capture_output=True, text=True)
-git_tag = result.stdout.strip().lstrip('v')
-
-if not git_tag:
-    print(current)
-    sys.exit(0)
-
-if git_tag == current:
-    sys.exit(0)
-
-# Targeted regex replacement preserves all formatting
-for path in [pj, os.path.join(repo_dir, '.claude-plugin', 'marketplace.json')]:
-    text = open(path).read()
-    updated = re.sub(r'("version"\s*:\s*")[^"]+(")', rf'\g<1>{git_tag}\2', text, count=1)
-    open(path, 'w').write(updated)
-
-print(f'  version: {current} -> {git_tag}', file=sys.stderr)
-print(git_tag)
-PYEOF
-)
-
-# If python3 printed nothing to stdout, fall back to reading plugin.json directly
-if [[ -z "$plugin_version" ]]; then
-  plugin_version=$(python3 -c "import json; print(json.load(open('$REPO_DIR/.claude-plugin/plugin.json'))['version'])")
-fi
+plugin_version=$(python3 -c "import json; print(json.load(open('$REPO_DIR/.claude-plugin/plugin.json'))['version'])")
 
 # Current HEAD SHA for installed_plugins.json metadata
 git_sha=$(git -C "$REPO_DIR" rev-parse HEAD 2>/dev/null || echo "")

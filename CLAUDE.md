@@ -229,6 +229,20 @@ If any standard is "no" or "maybe" -> reject the proposed change.
 
 ---
 
+## Release
+
+version: .claude-plugin/plugin.json, .claude-plugin/marketplace.json, README.md
+changelog: false
+
+Version bump procedure:
+- `.claude-plugin/plugin.json`: replace `"version": "OLD"` with `"version": "NEW"`
+- `.claude-plugin/marketplace.json`: replace `"version": "OLD"` with `"version": "NEW"` (inside plugins array)
+- `README.md`: replace `v{OLD}` with `v{NEW}` on line 1
+
+The `sync` script reads `plugin.json` for the version. It does not modify source files.
+
+---
+
 ## Core Reminder (The Tripod)
 
 All design decisions answer to three forces before any execution begins:
