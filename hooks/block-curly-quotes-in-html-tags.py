@@ -50,12 +50,15 @@ for m in re.finditer(r"<[^>]+>", text):
         print(
             json.dumps(
                 {
-                    "decision": "block",
-                    "reason": (
-                        f"Curly quote inside HTML tag ({label}). "
-                        f"Use straight quotes in attributes. Tag: {snippet}"
-                    ),
+                    "hookSpecificOutput": {
+                        "hookEventName": "PreToolUse",
+                        "permissionDecision": "deny",
+                        "permissionDecisionReason": (
+                            f"Curly quote inside HTML tag ({label}). "
+                            f"Use straight quotes in attributes. Tag: {snippet}"
+                        ),
+                    }
                 }
             )
         )
-        sys.exit(2)
+        sys.exit(0)

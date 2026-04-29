@@ -16,10 +16,13 @@ if tool == "Bash":
     command = inp.get("command", "")
     if "--no-verify" in command:
         print(json.dumps({
-            "decision": "block",
-            "reason": (
-                "--no-verify is banned. Hooks encode hard constraints that exist for a reason. "
-                "Investigate and fix the root cause of the hook failure instead of bypassing it."
-            )
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": (
+                    "--no-verify is banned. Hooks encode hard constraints that exist for a reason. "
+                    "Investigate and fix the root cause of the hook failure instead of bypassing it."
+                )
+            }
         }))
-        sys.exit(2)
+        sys.exit(0)

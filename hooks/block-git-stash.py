@@ -16,10 +16,13 @@ if tool == "Bash":
     command = inp.get("command", "")
     if re.search(r"\bgit\s+stash\b", command):
         print(json.dumps({
-            "decision": "block",
-            "reason": (
-                "git stash is banned. It destroys other agents' working state and causes data loss. "
-                "Use git log/diff to inspect changes, or git worktree to isolate work instead."
-            )
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": (
+                    "git stash is banned. It destroys other agents' working state and causes data loss. "
+                    "Use git log/diff to inspect changes, or git worktree to isolate work instead."
+                )
+            }
         }))
-        sys.exit(2)
+        sys.exit(0)

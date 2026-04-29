@@ -17,11 +17,14 @@ if tool == "Bash":
             or "generated with claude code" in cmd.lower()
             or "claude.ai/claude-code" in cmd.lower()):
         print(json.dumps({
-            "decision": "block",
-            "reason": (
-                "Claude attribution is banned in commits. Remove any of: "
-                "Co-Authored-By lines, 'Generated with Claude Code', or claude.ai/claude-code links. "
-                "Commit without attribution."
-            )
-        }), file=sys.stderr)
-        sys.exit(2)
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": (
+                    "Claude attribution is banned in commits. Remove any of: "
+                    "Co-Authored-By lines, 'Generated with Claude Code', or claude.ai/claude-code links. "
+                    "Commit without attribution."
+                )
+            }
+        }))
+        sys.exit(0)

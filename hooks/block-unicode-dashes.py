@@ -38,7 +38,10 @@ if found:
     }
     label = ", ".join(names.get(ch, ch) for ch in found)
     print(json.dumps({
-        "decision": "block",
-        "reason": f"Non-keyboard dash blocked ({label}). Use keyboard hyphen-minus (-) only."
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": f"Non-keyboard dash blocked ({label}). Use keyboard hyphen-minus (-) only."
+        }
     }))
-    sys.exit(2)
+    sys.exit(0)

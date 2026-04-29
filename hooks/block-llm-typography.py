@@ -78,8 +78,14 @@ def strip_code_fences(s: str) -> str:
 
 
 def block(reason: str) -> None:
-    print(json.dumps({"decision": "block", "reason": reason}))
-    sys.exit(2)
+    print(json.dumps({
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": reason,
+        }
+    }))
+    sys.exit(0)
 
 
 # Pass 1: all files

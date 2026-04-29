@@ -25,10 +25,13 @@ elif tool == "Bash":
 
 if blocked:
     print(json.dumps({
-        "decision": "block",
-        "reason": (
-            "/tmp is banned. Files written there are lost when the OS cleans up. "
-            "Write to the project directory or output directly to stdout instead."
-        )
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": (
+                "/tmp is banned. Files written there are lost when the OS cleans up. "
+                "Write to the project directory or output directly to stdout instead."
+            )
+        }
     }))
-    sys.exit(2)
+    sys.exit(0)
