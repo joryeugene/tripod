@@ -15,6 +15,18 @@ Happy path testing finds zero bugs by definition. The user already knows the hap
 
 ---
 
+## Order of Operations
+
+For any user-visible feature, real-browser verification comes first. Headless E2E specs come after. The browser confirms the product; the headless spec locks the contract.
+
+1. Drive the feature in real Chrome (DevTools MCP or Playwright MCP with a visible browser). Adversarial-first: error path, cancel, double-action, race, edge data, sequence corruption.
+2. Iterate in source until console is clean, network is correct, DOM matches expectation, and persistence plus adversarial paths land safely.
+3. Then write headless E2E specs to lock the verified behavior into CI. The spec encodes proof that already exists; it does not substitute for the proof.
+
+Writing a headless E2E spec before step 1 is complete encodes a contract, not a product. A `200 OK` does not catch layout breaks, console errors, mid-stream navigation corruption, or whether the rendered DOM matches what the user expected.
+
+---
+
 ## Mandatory Pre-Flight
 
 Always do this before testing anything:
@@ -219,6 +231,8 @@ A test is complete only when you have all three:
 3. **Persistence evidence:** reload the page and verify the change is still there
 
 A screenshot alone is not evidence. A toast firing is not evidence. Evidence means the server accepted the mutation and the client reflects it correctly after a fresh load.
+
+Before claiming a browser-tested feature done, walk the Adversarial Proof Four in `/verification-workflow`: cross-surface consistency, refresh persistence, removal or undo path, edge values.
 
 ---
 

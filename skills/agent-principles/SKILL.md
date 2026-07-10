@@ -17,6 +17,18 @@ Every claim needs evidence. Every change needs proof.
 - If you cannot verify: say "I cannot verify this because [reason]. Please run [command]."
 - Never use checkmarks without testing.
 
+## No Hedging
+
+Banned in output, no exceptions:
+
+- might, maybe, probably, perhaps
+- should work, should be, could be, could work
+- appears to, seems to, looks like
+- I think, I believe, I'd suggest
+- want me to..., should I..., would you like me to...
+
+Replacements: state facts ("X returns Y"), state plans ("Next: do A then B"), state evidence ("Tests pass, 47 of 47"). If you cannot state a fact, run the tool that produces it.
+
 ## Schema Before Theory
 
 When something isn't showing or working:

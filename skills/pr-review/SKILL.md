@@ -54,13 +54,40 @@ Review for:
 - **Consistency**: does this follow existing patterns in the codebase?
 - **Security**: does this introduce any OWASP top 10 vulnerabilities?
 
-For each finding, classify:
+For each finding, apply a Conventional Comments label and optional decoration.
 
-| Level | Meaning | Blocking? |
-|-------|---------|-----------|
-| **CRITICAL** | Bug, security issue, data loss risk | Yes |
-| **WARNING** | Correctness concern, missing edge case | Author's judgment |
-| **NOTE** | Style, naming, minor improvement | No |
+**Labels** (intent):
+
+| Label | Use for |
+|-------|---------|
+| `issue` | A concrete defect: bug, regression, contract violation, security flaw. |
+| `suggestion` | A specific change request. The reviewer is asking for a code edit. |
+| `nitpick` | Preference-based, trivial. |
+| `question` | The reviewer does not know if it is an issue. |
+| `praise` | Highlight something done well. Never blocking. |
+| `thought` | An idea sparked by the diff. |
+| `todo` | Small required change before merge. |
+| `note` | Informational, no action required. |
+
+**Decorations** (severity): `(blocking)`, `(non-blocking)`, `(if-minor)`. Defaults: `issue` and `todo` block by default; all other labels are non-blocking by default. An explicit decoration always wins over the default.
+
+### Comment Shape
+
+```
+**<label> [(decoration)]:** <one-line subject>
+
+[optional body: quote the relevant line, then explain]
+```
+
+Example. A function that returns null for ISO strings missing a timezone offset:
+
+```
+**issue (blocking):** `parseDate` returns null for ISO strings without a timezone offset.
+
+> `return Date.parse(input) || null`
+
+`Date.parse` is implementation-defined for offset-free strings. Callers downstream treat null as "no date", silently dropping valid inputs. Add an explicit UTC fallback or reject the input with a thrown error.
+```
 
 If the code is clean, say so. Do not manufacture issues to appear thorough.
 
@@ -70,7 +97,14 @@ If there are inline comments (preferred when findings are code-specific):
 
 ```bash
 # Start a review with inline comments
-gh api repos/{owner}/{repo}/pulls/{number}/reviews -X POST -f body="Review summary" -f event="<EVENT>" -f comments='[{"path":"src/file.py","line":42,"body":"Comment text"}]'
+gh api repos/{owner}/{repo}/pulls/{number}/reviews \
+  -X POST --input - <<'JSON'
+{
+  "body": "Review summary",
+  "event": "REQUEST_CHANGES",
+  "comments": [{"path": "src/file.py", "line": 42, "body": "**issue (blocking):** ..."}]
+}
+JSON
 ```
 
 If there are no line-specific findings, submit a plain review:
@@ -79,10 +113,11 @@ If there are no line-specific findings, submit a plain review:
 gh api repos/{owner}/{repo}/pulls/{number}/reviews -X POST -f body="Review summary" -f event="<EVENT>"
 ```
 
-Where `<EVENT>` is one of:
-- `APPROVE` when all findings are NOTE-level or no findings at all
-- `REQUEST_CHANGES` when any CRITICAL finding exists
-- `COMMENT` when findings exist but none are blocking
+Every submitted review carries a verdict. Choose one:
+
+- `APPROVE`: no effectively-blocking finding exists (no undecorated `issue`, no undecorated `todo`, no finding with `(blocking)`).
+- `REQUEST_CHANGES`: at least one effectively-blocking finding exists.
+- `COMMENT`: do not use as a submitted review event. Remarks that are not yet a verdict belong as standalone inline comments posted without submitting a review.
 
 Inline comments are preferred over a single summary comment whenever findings reference specific lines. Reviewers reading the PR see inline comments in context.
 
@@ -100,8 +135,11 @@ Agent {
 
   For each finding, report:
   - File path and line number
-  - Severity: CRITICAL / WARNING / NOTE
-  - What is wrong and why
+  - A Conventional Comments line: **<label> [(decoration)]:** <one-line subject>, then an optional body quoting the relevant line and explaining the problem.
+    Labels: issue, suggestion, nitpick, question, praise, thought, todo, note.
+    Decorations: (blocking), (non-blocking), (if-minor).
+    Defaults: issue and todo block; all other labels are non-blocking unless decorated otherwise.
+  - Do not pick the GitHub review event. Return findings only. The orchestrator computes the verdict from decorations.
 
   Read CLAUDE.md for project conventions. Flag violations.
   If everything looks clean, say so."
@@ -132,6 +170,17 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments
 ```
 
 Read every comment before responding to any of them. Understand the full picture before acting.
+
+### 1a. Bot comments
+
+Automated review-bot comments (claude[bot], copilot, and similar) are first-class review feedback. For each bot comment, pick one action:
+
+- **Fix**: edit the code to address the finding, then mark the thread resolved.
+- **Override**: reply with a one-line justification (`overruled: <reason>`), then mark the thread resolved.
+
+Unresolved bot threads default-block human review. For high comment volume, dispatch a subagent to triage them in parallel.
+
+For dismissing a bot's review-level `CHANGES_REQUESTED` verdict after threads are resolved, see "Dismiss bot reviews after addressing" below.
 
 ### 2. Restate each comment
 
@@ -278,6 +327,9 @@ A fresh subagent for each stage prevents the first review's framing from biasing
 - Posting a single summary comment when inline comments would place feedback in context.
 - Manufacturing review issues to appear thorough. If the code is clean, say so.
 - Reviewing your own code in the same context window. A fresh subagent catches what familiarity hides.
+- Submitting a review with event `COMMENT`. Every submitted review carries a verdict. Pick `APPROVE` or `REQUEST_CHANGES`.
+- Mixing label and severity in prose ("This is a critical issue..."). The label and decoration already carry intent and severity; the prose body explains the why.
+- Requesting human review with unresolved bot threads. Resolve or override every bot thread before adding human reviewers.
 
 ## The Floor
 

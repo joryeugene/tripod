@@ -49,6 +49,18 @@ Why it fails: field names are wrong on the first pass 80% of the time. This clai
 
 The distinction: one is a claim about code. The other is a claim about observed behavior with evidence attached.
 
+## Evidence Proof Hierarchy
+
+Climb to the highest rung of evidence the change supports.
+
+1. Real-browser-verified on real data. Highest. Floor for any user-visible feature.
+2. Integration-test verified against a real fixture or snapshot. Floor for data work.
+3. Unit-test verified for the changed unit. Floor for pure helpers.
+4. Type-check and build clean. Compiles, produces artifact.
+5. Read the code. The logic matches the intent. Lowest acceptable.
+
+Banned as sole evidence: "should work", "looks correct", "I think this handles it." Climb to the highest rung the change supports before declaring done. UI changes floor at rung 1. Data changes floor at rung 2. Pure helpers floor at rung 3.
+
 ## Per-Change-Type Verification
 
 Different changes require different proof. Generic "run tests" is not enough.
@@ -100,6 +112,15 @@ When verifying a feature or phase: start from the goal, not the task list.
 Do not trust your own summaries. Summaries record what you intended or believed you did. The codebase records what actually happened. Check the codebase.
 
 Common failure: executor completed all tasks, wrote a summary, but the feature is not reachable because the route was never registered, the handler was never connected, or the function was called with the wrong argument. Task list: complete. Goal: not achieved.
+
+## Adversarial Proof Four
+
+Before claiming a feature done, walk all four. Each green or the feature is not done. The next reader finds the missing one in sixty seconds.
+
+1. **Cross-surface consistency**: the same affordance appears the same way on every surface that should show it. State changes propagate. Same style, same position, same icon.
+2. **Refresh persistence**: write a value, hard-refresh the page, value still rendered. Navigate away and back, value still there. Hit the URL directly, value still there.
+3. **Removal or undo path**: every write has a visible undo affordance in the same change. No write paths without an undo.
+4. **Edge values**: empty, one, many, null, max-length string, unicode, duplicate input, value already in state.
 
 ## When You Can't Verify
 

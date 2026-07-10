@@ -19,6 +19,24 @@ Use sequential work when:
 - The task is small enough that coordination overhead exceeds the gain
 - You need to review output before the next step begins
 
+## When to Delegate at All
+
+Trivial enough to do directly (no Agent spawn):
+- Reading a known file path the user named
+- Running a single git command (status, log, diff, branch)
+- A single-line or single-character edit when the location is already loaded
+- Answering a question fully from context already in the main thread
+- A single grep with a fully-known target
+
+Always delegate (spawn an Agent):
+- Code search where the target is not already known
+- Any multi-file change
+- Test, build, or lint runs that produce more than approximately 50 lines of output
+- Verification that requires reading log files or large outputs
+- Exploration of unfamiliar code or libraries
+- Adversarial browser testing or MCP-driven verification flows
+- Any review pass
+
 ## Two Tools
 
 ### Task tool (fire-and-forget)
@@ -60,6 +78,15 @@ Task { subagent_type: "general-purpose", team_name: "feature-x", name: "test-wri
 SendMessage { type: "shutdown_request", recipient: "api-dev", content: "Work complete." }
 TeamDelete {}
 ```
+
+## Models per Layer
+
+Pass `model` explicitly on every `Task` spawn. Do not rely on inheritance: an orchestrator running a large reasoning model will otherwise spawn workers on the same large model, which is expensive and rarely what you want.
+
+- Orchestrator (main thread): the large reasoning model. Plans, decomposes, synthesizes.
+- Workers, default: pass `model: "sonnet"`. Execution, edits, test runs, reviews.
+- Read-only research: pass `model: "haiku"` on Explore-style agents. Fast and cheap.
+- Never pass the largest reasoning model to a worker. Reasoning belongs in the main thread.
 
 ## File Ownership Rule
 
@@ -134,6 +161,7 @@ Cost signals that parallelism is hurting: you spend more time reviewing agent ou
 - Sparse spawn prompts: subagents start fresh. If the prompt omits context, the agent will guess and guess wrong.
 - Forgetting shutdown: always send `shutdown_request` to each teammate, then call `TeamDelete`. Orphaned agents consume resources.
 - Skipping `TeamDelete` after `shutdown_request`: the shutdown and the cleanup are two separate steps.
+- Orchestrator pasting tool output, narrating file contents, or running tests itself. The orchestrator delegates and decides; the worker executes.
 
 ## The Floor
 

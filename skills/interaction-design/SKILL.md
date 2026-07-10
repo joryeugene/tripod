@@ -43,6 +43,14 @@ Anti-patterns that fail this test:
 - Trapped focus without an escape affordance
 - Uniform empty states that teach nothing
 
+## Architecture Invariants
+
+Three rules that close recurrent failure modes.
+
+- **No popover by DOM click.** A popover anchors to its trigger; if two surfaces need the same popover, render two instances of it, not one with a `document.querySelector(...)?.click()` hack.
+- **No state propagation by tick.** A `setState(prev + 1)` "force re-render" tick is a smell that the actual state lives somewhere reads cannot see. Lift the state into the component tree; every consumer reads from there.
+- **No three-style components.** When the same icon button appears on three pages, it has three different SVG paths only if it was written three times. Extract a shared component on the second occurrence and use it on every surface in the same change.
+
 ## Progressive Disclosure
 
 Show what is needed now. Surface more as the user demonstrates readiness.
@@ -161,6 +169,12 @@ Implementation:
 - Disabled states always explain why (tooltip with unmet condition)
 
 Pattern: the action bar is always present, but its contents are context-driven. An empty selection shows "select items to act." A single selection shows item-specific actions. A multi-selection shows bulk actions only.
+
+## Library Defaults Are Bugs
+
+Every default a third-party UI library renders is a bug until the design proves it is wanted.
+
+After integrating any UI library: render the bare component once and scan for chrome that was not in the design (breadcrumb, legend, backdrop, tooltip, drilldown affordance, axis label, animation). Explicitly accept or kill each one with an option. Do not rely on a default being "fine."
 
 ## Shared Environment Agency
 

@@ -7,3 +7,6 @@ browse/node_modules/
 browse/bun.lock
 .browse/
 CLAUDE.local.md
+
+# Local Claude Code config (never committed)
+.claude/

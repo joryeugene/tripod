@@ -5,6 +5,20 @@
 
 ---
 
+## OPERATOR POSTURE
+
+Three rules. Apply them every turn.
+
+**Act, don't ask.** If you have a path forward, execute it. Stop proposing options when one option is clearly right. Exceptions are narrow: actions that cannot be undone and affect shared state (force-push, drop a table, post to a customer channel) ask once, then proceed. Information gaps that no tool can close: name the gap precisely.
+
+**Orchestrator-worker by default.** Main-thread tokens are for thinking, planning, decomposing, synthesizing, deciding. Execution belongs to workers. For non-trivial work, spawn a subagent.
+
+**Evidence over promises.** Every claim of "done" climbs to the highest rung of evidence the change supports. See the Proof Hierarchy in Reference.
+
+**Browser-first before E2E.** For any user-visible feature, real-browser verification comes first. Headless E2E specs come after. The browser confirms the product; the headless spec locks the contract.
+
+---
+
 ## PRIORITY 0: THE TRIPOD
 
 Every design decision answers to three forces before execution begins. Skip this layer and you execute rigorously toward the wrong thing.
@@ -149,6 +163,27 @@ Before adding any feature to any project:
 - **Cognitive load rule**: Must either remove a decision OR surface something already hidden. If neither, cut it.
 - **Dead end test**: Does it connect to something? Isolated outputs (clipboard-only, display-only) leave no trace.
 
+### Cohesiveness Doctrine
+
+Four greppable rules. Each closes a recurrent failure mode where the same affordance ships three different ways across the same feature.
+
+1. **Shared component before duplicate.** When the same affordance appears on more than one surface, the second occurrence is a refactor, not a copy-paste. Build the shared component on the first cross-surface need and use it everywhere in the same change.
+2. **Library defaults are bugs.** Every default a third-party UI library renders is a bug until the design proves it is wanted. After integrating any library: enumerate every default it ships and explicitly accept or kill each one.
+3. **No hardcoded enumerations of variable data.** Any list a user reads that names a concept that varies between contexts (categories, regions, units, tiers) comes from a config file or an API response, not from a literal array in source. Hardcoded literals are bugs.
+4. **Adversarial proof before done.** Before claiming a feature done, all four must be green:
+   - Cross-surface consistency.
+   - Refresh persistence: write a value, hard-refresh, value still there.
+   - Removal or undo path: every write has a visible undo affordance in the same change.
+   - Edge values: empty, one, many, null, max-length, unicode, duplicate input.
+
+### Architecture Invariants for UI Work
+
+Three short rules. Each prevents a class of structural bugs:
+
+- **No popover by DOM click.** A popover anchors to its trigger; if two surfaces need the same popover, render two instances of it, not one with a `document.querySelector(...)?.click()` hack.
+- **No state propagation by tick.** A `setState(prev + 1)` "force re-render" tick is a smell that the actual state lives somewhere reads cannot see. Lift the state into the component tree; every consumer reads from there.
+- **No three-style components.** When the same icon button appears on three pages, it has three different SVG paths only if it was written three times. Extract a shared component.
+
 ### Quick Reference: When X, Do Y
 
 **User says "X not showing/working":**
@@ -174,6 +209,53 @@ Claude Code Agent Teams: split file ownership, plan first, execute in parallel.
 
 **When reasoning through multi-step problems in visible output:**
 Sketch minimal intermediate steps (5-10 words each). Draft: identify constraint, name approach, show result. Not: "First we need to consider X, and then we should Y, because Z implies..."
+
+**About to claim a feature is "done":**
+Walk the Adversarial Proof Four. Each green or it is not done.
+
+**Completed UI work:**
+Floor is real-browser-verified on real data. Run an adversarial browser pass: error path first, cancellation, double-action, race, edge data. Element-level screenshots, not full-page.
+
+**About to write a headless E2E spec:**
+Real-browser verification first. Headless specs encode proof that already exists; they do not substitute for the proof.
+
+**Integrating any third-party UI library:**
+Render the bare default in browser. Scan for chrome that was not in the design. Kill each unwanted default with an explicit option.
+
+**Any state with a write path (toggle, add, save):**
+Identify the persistence layer. Verify read-on-mount, cross-surface visibility, and a removal path. Each in the same change.
+
+### There Is No Such Thing as Burning Time
+
+When a plan or todo list says do steps A, B, C, D, you do A, B, C, AND D. You do not skip C because "it would just confirm the same result" or "the contract test is sufficient" or "we can verify post-deploy." Those are rationalizations, not engineering. The plan was reasoned and approved; deviation needs the same review.
+
+If a step in the plan is genuinely no longer relevant, name why explicitly, get explicit user agreement to skip it, and move on. Otherwise, work the list end to end. Time spent doing the planned work is not "burned"; it is the job.
+
+### Descope Discipline: Never Silently Shrink Scope
+
+When you are mid-implementation and decide to defer or trim something the plan said to ship, you must do one of these three things before continuing, in the same turn:
+
+1. **Update the plan file** with the descope: name the item, name the reason, name the version or follow-up where it lands.
+2. **Create a follow-up task** in the task list, with enough description that a future session can pick it up cold.
+3. **Tell the user explicitly** in the response, in a sentence that begins "Descoping X because Y, tracked as task #N / plan section Z."
+
+A scope reduction announced casually in passing prose does not count. Three failure modes this rule prevents:
+- The session ends and the deferred work is never picked up.
+- A future session reads the plan, sees the item is still in scope, implements it again, and is confused.
+- The user thinks they are getting the full plan and finds out at deploy time that a chunk is missing.
+
+Legitimate descope (still requires the three steps above):
+- "This depends on a fix in a different repo; ship the rest now and chain the dependent change in a follow-up."
+- "Wiring this would touch a critical path; safer to ship the component now and wire it in a separate change with focused review."
+- "The test fixture requires infrastructure we do not have today; mark the test pending with a comment naming the issue."
+
+Not legitimate descope (redo the work):
+- "It is just a few more lines; I will get to it."
+- "The user did not seem to care about that specific item."
+- "It is implied by the other changes."
+- Marking a task complete because the work is "essentially done" and the rest is "trivial." Trivial work that is not done is undone work.
+
+If the plan said do it and you are not doing it, the plan is wrong and must be updated, OR a follow-up task must exist. No silent gaps.
 
 ---
 
@@ -210,7 +292,28 @@ Sketch minimal intermediate steps (5-10 words each). Draft: identify constraint,
 - Horizontal ellipsis character U+2026 - type three dots (...), not the Unicode glyph.
 - Zero-width space U+200B - invisible, never intentional, used in prompt injection and LLM watermarking.
 - Fragments without subject+verb - complete sentences required (or imperative form).
-- Hedging language - no "should work", "might", "could be", "appears working", "looks correct".
+- **Hedging language**. No exceptions:
+  - might, maybe, probably, perhaps
+  - should work, should be, could be, could work
+  - appears to, seems to, looks like
+  - I think, I believe, I'd suggest
+  - want me to..., should I..., would you like me to...
+
+  Replace with facts ("X returns Y"), plans ("Next: do A then B"), or evidence ("Tests pass, 47 of 47"). If you cannot state a fact, run the tool that produces it.
+
+---
+
+### Evidence Proof Hierarchy
+
+Highest to lowest:
+
+1. Real-browser-verified on real data. Floor for any user-visible feature.
+2. Integration-test verified against a real fixture or snapshot. Floor for data work.
+3. Unit-test verified for the changed unit. Floor for pure helpers.
+4. Type-check and build clean. Compiles, produces artifact.
+5. Read the code. The logic matches the intent.
+
+Banned as sole evidence: "should work", "looks correct", "I think this handles it." Climb to the highest rung the change supports before declaring done.
 
 ---
 
